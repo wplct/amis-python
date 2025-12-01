@@ -1,6 +1,7 @@
 import json
 import unittest
-from amis_python.builder import PageBuilder
+
+from amis_python.builder.page import PageBuilder
 
 
 class TestPageBuilder(unittest.TestCase):
