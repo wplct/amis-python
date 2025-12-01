@@ -1,6 +1,6 @@
 # base.py
 """
-Pydantic-v2 基础构造器模块，为所有 amis 节点提供统一的序列化能力。
+Pydantic 基础构造器模块，为所有 amis 节点提供统一的序列化能力。
 
 核心功能：
 - 所有 amis 组件继承自 BaseBuilder；
@@ -9,25 +9,46 @@ Pydantic-v2 基础构造器模块，为所有 amis 节点提供统一的序列�
 - 强制每个组件必须声明 type 字段（由子类以 Literal 形式提供）。
 
 注意：type 字段不再通过抽象属性强制，而是作为 Pydantic 模型字段，
-      由子类使用 Literal 显式定义，确保 model_dump() 能正确序列化。
+      由子类使用 Literal 显式定义，确保序列化能正确进行。
 """
 
 from abc import ABC
 from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 from typing_extensions import Literal  # 兼容 Python <3.8
 
 
+# 动态检测 Pydantic 版本，选择合适的配置方式
+try:
+    # 检查是否是 Pydantic v2
+    from pydantic import ConfigDict
+    IS_PYDANTIC_V2 = True
+except ImportError:
+    # Pydantic v1
+    IS_PYDANTIC_V2 = False
+
+
 class BaseBuilder(BaseModel, ABC):
-    # 启用 validate_default 确保 default_factory 创建的对象也被正确验证和序列化
-    model_config = ConfigDict(validate_default=True)
+    # 动态配置，兼容 Pydantic v1 和 v2
+    if IS_PYDANTIC_V2:
+        # Pydantic v2 配置
+        model_config = {
+            "validate_default": True,
+            "populate_by_name": True,
+        }
+    else:
+        # Pydantic v1 配置
+        class Config:
+            validate_default = True
+            # 启用 alias 支持
+            allow_population_by_field_name = True
 
     # type 由子类以 Literal 字段形式提供，确保是 Pydantic 字段
     type: str
 
     def to_schema(
             self,
-            *,
+            *, 
             by_alias: bool = True,
             exclude_none: bool = True,
             **dump_kwargs: Any,
@@ -38,7 +59,16 @@ class BaseBuilder(BaseModel, ABC):
 
         # 绕过 model_dump()，直接从实例中获取字段值
         raw = {}
-        for name, field_info in self.__class__.model_fields.items():
+        
+        # 兼容 Pydantic v1 和 v2
+        try:
+            # Pydantic v2
+            fields = self.model_fields
+        except AttributeError:
+            # Pydantic v1
+            fields = self.__fields__
+        
+        for name, field_info in fields.items():
             # 检查字段是否已设置（如果使用 Field(default_factory) 则应存在）
             if name in self.__dict__:
                 value = self.__dict__[name]  # 获取原始值，可能是一个 BaseBuilder 实例
@@ -48,7 +78,14 @@ class BaseBuilder(BaseModel, ABC):
                     continue
 
                 # 处理别名
-                key = field_info.alias if by_alias and field_info.alias else name
+                try:
+                    # Pydantic v2
+                    alias = field_info.alias
+                except AttributeError:
+                    # Pydantic v1
+                    alias = field_info.alias
+                
+                key = alias if by_alias and alias else name
                 raw[key] = value
 
         # 2. 合并额外字段

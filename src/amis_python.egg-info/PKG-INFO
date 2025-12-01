@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: amis-python
+Version: 0.1.0
+Summary: Python-side schema builder for amis JSON
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: pydantic>=1.6
+Requires-Dist: typing_extensions>=3.7.4.3

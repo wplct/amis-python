@@ -1,10 +1,40 @@
-from __future__ import annotations
+# from __future__ import annotations
 from typing import Any, Dict, List, Union, Optional, Literal
 from pydantic import BaseModel, Field
 
 from .api import AmisApiObject
 from .base import BaseBuilder
 from .page import PageBuilder
+
+
+# 路径处理工具函数
+def parse_path(path: str) -> List[str]:
+    """
+    解析路径字符串为路径段列表
+    
+    Args:
+        path: 路径字符串，如 "/home" 或 "/users/list"
+        
+    Returns:
+        路径段列表，如 ["home"] 或 ["users", "list"]
+    """
+    # 移除首尾的斜杠，然后按斜杠分割
+    segments = path.strip("/").split("/")
+    # 过滤掉空字符串
+    return [seg for seg in segments if seg]
+
+
+def generate_path(segments: List[str]) -> str:
+    """
+    根据路径段列表生成路径字符串
+    
+    Args:
+        segments: 路径段列表，如 ["home"] 或 ["users", "list"]
+        
+    Returns:
+        路径字符串，如 "/home" 或 "/users/list"
+    """
+    return f"/{'/'.join(segments)}"
 
 
 class AppPageBuilder(BaseBuilder):
@@ -18,6 +48,79 @@ class AppPageBuilder(BaseBuilder):
         default_factory=list,
         description="子页面列表，用于实现嵌套路由或子菜单"
     )
+    
+    def register_page(
+        self,
+        path: str,
+        page: PageBuilder,
+        label: Optional[str] = None
+    ) -> "AppPageBuilder":
+        """
+        在当前页面下注册子页面
+        
+        Args:
+            path: 页面路径，如 "/list" 或 "/detail/{id}"
+            page: 页面实例
+            label: 页面在导航菜单中显示的名称
+            
+        Returns:
+            当前 AppPageBuilder 实例，支持链式调用
+        """
+        segments = parse_path(path)
+        
+        if not segments:
+            # 路径为空，直接添加到当前页面的 children 中
+            if isinstance(page, PageBuilder):
+                self.children.append(page)
+            return self
+        
+        # 处理嵌套路径
+        child_path = generate_path(segments[1:]) if len(segments) > 1 else ""
+        
+        # 检查是否已存在同名子页面
+        for child in self.children:
+            if isinstance(child, AppPageBuilder) and child.label == segments[0]:
+                # 已存在，递归注册
+                child.register_page(child_path, page, label)
+                return self
+        
+        # 不存在，创建新的 AppPageBuilder
+        new_page = AppPageBuilder(label=segments[0], children=[])
+        new_page.register_page(child_path, page, label)
+        self.children.append(new_page)
+        
+        return self
+    
+    def get_page(self, path: str) -> Optional[PageBuilder]:
+        """
+        根据路径获取已注册的页面
+        
+        Args:
+            path: 页面路径，如 "/list" 或 "/detail/{id}"
+            
+        Returns:
+            找到的 PageBuilder 实例，未找到则返回 None
+        """
+        segments = parse_path(path)
+        
+        if not segments:
+            # 路径为空，返回当前页面的第一个 PageBuilder 子节点
+            for child in self.children:
+                if isinstance(child, PageBuilder):
+                    return child
+            return None
+        
+        # 遍历子节点
+        for child in self.children:
+            if isinstance(child, AppPageBuilder) and child.label == segments[0]:
+                # 递归查找
+                child_path = generate_path(segments[1:])
+                return child.get_page(child_path)
+            elif isinstance(child, PageBuilder) and segments[0] == child.label:
+                # 找到页面
+                return child
+        
+        return None
 
 
 class AppPageGroupBuilder(BaseBuilder):
@@ -27,10 +130,132 @@ class AppPageGroupBuilder(BaseBuilder):
     """
     type: Literal["app-group"] = "app-group"
     label: Optional[str] = Field(None, description="分组在导航菜单中显示的标题")
-    children: List[Union[AppPageBuilder, AppPageGroupBuilder]] = Field(
+    children: List[Union[AppPageBuilder, "AppPageGroupBuilder"]] = Field(
         default_factory=list,
         description="分组内包含的页面或嵌套分组"
     )
+    
+    def register_page(
+        self,
+        path: str,
+        page: PageBuilder,
+        label: Optional[str] = None
+    ) -> "AppPageBuilder":
+        """
+        在当前分组下注册页面
+        
+        Args:
+            path: 页面路径，如 "/list" 或 "/detail/{id}"
+            page: 页面实例
+            label: 页面在导航菜单中显示的名称
+            
+        Returns:
+            注册的 AppPageBuilder 实例
+        """
+        segments = parse_path(path)
+        
+        if not segments:
+            # 路径为空，直接创建 AppPageBuilder
+            new_page = AppPageBuilder(label=label, children=[page])
+            self.children.append(new_page)
+            return new_page
+        
+        # 处理嵌套路径
+        child_path = generate_path(segments[1:]) if len(segments) > 1 else ""
+        
+        # 检查是否已存在同名子页面或分组
+        for child in self.children:
+            if isinstance(child, AppPageBuilder) and child.label == segments[0]:
+                # 已存在 AppPageBuilder，递归注册
+                child.register_page(child_path, page, label)
+                return child
+            elif isinstance(child, AppPageGroupBuilder) and child.label == segments[0]:
+                # 已存在分组，递归注册
+                return child.register_page(child_path, page, label)
+        
+        # 不存在，创建新的 AppPageBuilder
+        new_page = AppPageBuilder(label=segments[0], children=[])
+        new_page.register_page(child_path, page, label)
+        self.children.append(new_page)
+        
+        return new_page
+    
+    def register_subgroup(
+        self,
+        path: str,
+        label: Optional[str] = None
+    ) -> "AppPageGroupBuilder":
+        """
+        在当前分组下注册子分组
+        
+        Args:
+            path: 分组路径，如 "/users" 或 "/admin/system"
+            label: 分组在导航菜单中显示的标题
+            
+        Returns:
+            注册的 AppPageGroupBuilder 实例
+        """
+        segments = parse_path(path)
+        
+        if not segments:
+            # 路径为空，直接创建分组
+            new_group = AppPageGroupBuilder(label=label, children=[])
+            self.children.append(new_group)
+            return new_group
+        
+        # 处理嵌套路径
+        child_path = generate_path(segments[1:]) if len(segments) > 1 else ""
+        
+        # 检查是否已存在同名子分组
+        for child in self.children:
+            if isinstance(child, AppPageGroupBuilder) and child.label == segments[0]:
+                # 已存在，递归注册
+                return child.register_subgroup(child_path, label)
+            elif isinstance(child, AppPageBuilder) and child.label == segments[0]:
+                # 已存在页面，无法在页面下创建分组
+                raise ValueError(f"Cannot create subgroup under page: {segments[0]}")
+        
+        # 不存在，创建新的分组
+        new_group = AppPageGroupBuilder(label=segments[0], children=[])
+        result = new_group.register_subgroup(child_path, label)
+        self.children.append(new_group)
+        
+        return result
+    
+    def get_page(self, path: str) -> Optional[PageBuilder]:
+        """
+        根据路径获取已注册的页面
+        
+        Args:
+            path: 页面路径，如 "/list" 或 "/detail/{id}"
+            
+        Returns:
+            找到的 PageBuilder 实例，未找到则返回 None
+        """
+        segments = parse_path(path)
+        
+        if not segments:
+            return None
+        
+        # 遍历子节点
+        for child in self.children:
+            if isinstance(child, AppPageBuilder) and child.label == segments[0]:
+                if len(segments) == 1:
+                    # 找到页面，返回其第一个子页面（假设每个 AppPageBuilder 只有一个 PageBuilder 子节点）
+                    for grandchild in child.children:
+                        if isinstance(grandchild, PageBuilder):
+                            return grandchild
+                    return None
+                else:
+                    # 递归查找
+                    child_path = generate_path(segments[1:])
+                    return child.get_page(child_path)
+            elif isinstance(child, AppPageGroupBuilder) and child.label == segments[0]:
+                # 递归查找分组
+                child_path = generate_path(segments[1:])
+                return child.get_page(child_path)
+        
+        return None
 
 
 class AppBuilder(BaseBuilder):
@@ -121,3 +346,125 @@ class AppBuilder(BaseBuilder):
         default_factory=list,
         description="应用的页面结构，支持顶层直接放置页面或分组（混合列表）"
     )
+    
+    def register_page(
+        self,
+        path: str,
+        page: PageBuilder,
+        label: Optional[str] = None
+    ) -> AppPageBuilder:
+        """
+        直接在根目录注册页面
+        
+        Args:
+            path: 页面路径，如 "/home" 或 "/users/list"
+            page: 页面实例
+            label: 页面在导航菜单中显示的名称
+            
+        Returns:
+            注册的 AppPageBuilder 实例
+        """
+        segments = parse_path(path)
+        
+        if not segments:
+            # 路径为空，直接创建 AppPageBuilder
+            new_page = AppPageBuilder(label=label, children=[page])
+            self.pages.append(new_page)
+            return new_page
+        
+        # 处理嵌套路径
+        child_path = generate_path(segments[1:]) if len(segments) > 1 else ""
+        
+        # 检查是否已存在同名页面或分组
+        for child in self.pages:
+            if isinstance(child, AppPageBuilder) and child.label == segments[0]:
+                # 已存在 AppPageBuilder，递归注册
+                child.register_page(child_path, page, label)
+                return child
+            elif isinstance(child, AppPageGroupBuilder) and child.label == segments[0]:
+                # 已存在分组，递归注册
+                return child.register_page(child_path, page, label)
+        
+        # 不存在，创建新的 AppPageBuilder
+        new_page = AppPageBuilder(label=segments[0], children=[])
+        new_page.register_page(child_path, page, label)
+        self.pages.append(new_page)
+        
+        return new_page
+    
+    def register_page_group(
+        self,
+        path: str,
+        label: Optional[str] = None
+    ) -> AppPageGroupBuilder:
+        """
+        注册页面分组
+        
+        Args:
+            path: 分组路径，如 "/users" 或 "/admin/system"
+            label: 分组在导航菜单中显示的标题
+            
+        Returns:
+            注册的 AppPageGroupBuilder 实例
+        """
+        segments = parse_path(path)
+        
+        if not segments:
+            # 路径为空，直接创建分组
+            new_group = AppPageGroupBuilder(label=label, children=[])
+            self.pages.append(new_group)
+            return new_group
+        
+        # 处理嵌套路径
+        child_path = generate_path(segments[1:]) if len(segments) > 1 else ""
+        
+        # 检查是否已存在同名分组或页面
+        for child in self.pages:
+            if isinstance(child, AppPageGroupBuilder) and child.label == segments[0]:
+                # 已存在分组，递归注册
+                return child.register_subgroup(child_path, label)
+            elif isinstance(child, AppPageBuilder) and child.label == segments[0]:
+                # 已存在页面，无法在页面下创建分组
+                raise ValueError(f"Cannot create group under page: {segments[0]}")
+        
+        # 不存在，创建新的分组
+        new_group = AppPageGroupBuilder(label=segments[0], children=[])
+        result = new_group.register_subgroup(child_path, label)
+        self.pages.append(new_group)
+        
+        return result
+    
+    def get_page(self, path: str) -> Optional[PageBuilder]:
+        """
+        根据路径获取已注册的页面
+        
+        Args:
+            path: 页面路径，如 "/home" 或 "/users/list"
+            
+        Returns:
+            找到的 PageBuilder 实例，未找到则返回 None
+        """
+        segments = parse_path(path)
+        
+        if not segments:
+            return None
+        
+        # 遍历顶层页面和分组
+        for child in self.pages:
+            if isinstance(child, AppPageBuilder) and child.label == segments[0]:
+                if len(segments) == 1:
+                    # 找到页面，返回其第一个子页面（假设每个 AppPageBuilder 只有一个 PageBuilder 子节点）
+                    for grandchild in child.children:
+                        if isinstance(grandchild, PageBuilder):
+                            return grandchild
+                    return None
+                else:
+                    # 递归查找
+                    child_path = generate_path(segments[1:])
+                    return child.get_page(child_path)
+            elif isinstance(child, AppPageGroupBuilder) and child.label == segments[0]:
+                # 递归查找分组
+                child_path = generate_path(segments[1:])
+                return child.get_page(child_path)
+        
+        return None
