@@ -17,8 +17,4 @@ dependencies = [
 where = ["src"]
 
 [tool.uv.workspace]
-members = [
-    "test_project",
-    ".",
-    ".",
-]
+members = []
