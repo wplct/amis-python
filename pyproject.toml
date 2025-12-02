@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8" # 修改为 Python 3.8+
 dependencies = [
     "pydantic>=1.6", # 修改为兼容 pydantic 1.6+ 和 2.0+
+    "pytest>=8.3.5",
     "typing_extensions>=3.7.4.3", # 为 Python 3.8 提供 typing_extensions 支持
 ]
 

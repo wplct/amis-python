@@ -1,0 +1,194 @@
+# from __future__ import annotations
+from typing import Any, Dict, List, Union, Optional, Literal
+from pydantic import BaseModel, Field
+
+from ..api import AmisApiObject
+from ..base import BaseBuilder
+from ..page import PageBuilder
+from .group import AppPageGroupBuilder
+from .page import AppPageBuilder
+
+
+class AppBuilder(BaseBuilder):
+    """
+    构建整个 AMIS 应用的根配置对象，对应 <App> 组件。
+    参考文档：https://aisuda.bce.baidu.com/amis/zh-CN/components/app
+
+    示例：
+        app = AppBuilder(
+            brand_name="我的系统",
+            pages=[
+                AppPageGroupBuilder(label="首页", children=[...]),
+                AppPageGroupBuilder(label="用户管理", children=[...])
+            ]
+        )
+    """
+    type: Literal["app"] = "app"
+
+    # === 基础信息 ===
+    api: Optional[Union[str, AmisApiObject]] = Field(
+        None,
+        description="动态拉取应用配置的接口。可以是 URL 字符串，或结构化 API 对象（支持 method/data/headers 等）"
+    )
+    brand_name: str = Field(
+        "amis-python",
+        description="应用左上角的品牌名称"
+    )
+    logo: Optional[str] = Field(
+        None,
+        description="品牌 Logo 图片 URL，显示在品牌名左侧"
+    )
+    class_name: Optional[str] = Field(
+        None,
+        description="CSS 类名"
+    )
+
+    # === 布局控制 ===
+    affix_header: bool = Field(
+        True,
+        description="是否固定顶部栏（默认 true）"
+    )
+    aside_fixed: bool = Field(
+        True,
+        description="是否固定侧边栏（默认 true）"
+    )
+    aside_folded: bool = Field(
+        False,
+        description="侧边栏是否默认折叠（默认 false）"
+    )
+
+    # === 自定义区域 ===
+    header: Optional[Union[str, dict]] = Field(
+        None,
+        description="顶部区域内容（支持 HTML 或 amis schema）"
+    )
+    toolbar: Optional[Union[str, dict]] = Field(
+        None,
+        description="顶部右侧工具栏内容（常用于放置通知、用户头像等）"
+    )
+    aside_before: Optional[Union[str, dict]] = Field(
+        None,
+        description="页面菜单上前面区域"
+    )
+    aside_after: Optional[Union[str, dict]] = Field(
+        None,
+        description="页面菜单下前面区域"
+    )
+    footer: Optional[Union[str, dict]] = Field(
+        None,
+        description="底部区域内容"
+    )
+
+    # === 主题与国际化 ===
+    css_vars: Optional[Dict[str, str]] = Field(
+        None,
+        description="自定义 CSS 变量，用于主题定制（如 {'--primary': '#1890ff'}）"
+    )
+    locale: Optional[str] = Field(
+        None,
+        description="语言区域设置，如 'zh-CN'、'en-US'（需配合 localeProvider 使用）"
+    )
+
+    # === 页面结构 ===
+    pages: List[AppPageGroupBuilder] = Field(
+        default_factory=list,
+        description="应用的页面结构，顶层只允许放置分组"
+    )
+    
+    def register_page(
+        self,
+        path: str,
+        page: PageBuilder,
+        group: Union[AppPageGroupBuilder, str],
+        label: Optional[str] = None
+    ) -> AppPageBuilder:
+        """
+        注册页面，需要指定分组
+        
+        Args:
+            path: 页面路径，如 "/home" 或 "/users/list"
+            page: 页面实例
+            group: 分组实例或分组标题
+            label: 页面在导航菜单中显示的名称
+            
+        Returns:
+            注册的 AppPageBuilder 实例
+        """
+        # 找到指定的分组
+        target_group = None
+        if isinstance(group, AppPageGroupBuilder):
+            # 如果是分组实例，直接使用
+            target_group = group
+        else:
+            # 如果是分组标题，查找对应的分组
+            for g in self.pages:
+                if g.label == group:
+                    target_group = g
+                    break
+        
+        # 验证分组是否存在
+        if not target_group:
+            raise ValueError(f"Group '{group}' not found. Please register the group first.")
+        
+        # 创建页面实例
+        app_page = AppPageBuilder(
+            label=label or path.split("/")[-1],
+            url=path,
+            schema=page
+        )
+        
+        # 将页面添加到指定分组
+        target_group.children.append(app_page)
+        
+        return app_page
+    
+    def register_page_group(
+        self,
+        label: str,
+        icon: Optional[str] = None
+    ) -> AppPageGroupBuilder:
+        """
+        注册页面分组
+        
+        Args:
+            label: 分组在导航菜单中显示的标题
+            icon: 分组图标
+            
+        Returns:
+            注册的 AppPageGroupBuilder 实例
+        """
+        # 检查分组标题是否已存在
+        for group in self.pages:
+            if group.label == label:
+                raise ValueError(f"Group '{label}' already exists.")
+        
+        # 创建分组实例
+        new_group = AppPageGroupBuilder(label=label, icon=icon, children=[])
+        self.pages.append(new_group)
+        
+        return new_group
+    
+    def get_page(self, path: str) -> Optional[PageBuilder]:
+        """
+        根据路径获取已注册的页面
+        
+        Args:
+            path: 页面路径，如 "/home" 或 "/users/list"
+            
+        Returns:
+            找到的 PageBuilder 实例，未找到则返回 None
+        """
+        # 遍历所有分组
+        for group in self.pages:
+            # 遍历分组内的所有页面
+            for child in group.children:
+                if isinstance(child, AppPageBuilder):
+                    if child.url == path:
+                        return child.schema
+                elif isinstance(child, AppPageGroupBuilder):
+                    # 递归查找子分组
+                    page = child.get_page(path)
+                    if page:
+                        return page
+        
+        return None

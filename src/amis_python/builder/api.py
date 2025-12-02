@@ -20,7 +20,6 @@ class AmisApiObject(BaseModel):
     )
     request_adaptor: Optional[str] = Field(
         None,
-        alias="requestAdaptor",
         description="请求发送前的适配器函数（前端 JS 函数名或代码字符串）"
     )
     adaptor: Optional[str] = Field(

@@ -69,24 +69,23 @@ class BaseBuilder(BaseModel, ABC):
             fields = self.__fields__
         
         for name, field_info in fields.items():
-            # 检查字段是否已设置（如果使用 Field(default_factory) 则应存在）
-            if name in self.__dict__:
-                value = self.__dict__[name]  # 获取原始值，可能是一个 BaseBuilder 实例
+            # 获取字段值，不管它是否存在于 __dict__ 中
+            value = getattr(self, name)
 
-                # 排除 None 值（如果用户在 to_schema 中设置了 exclude_none=True）
-                if exclude_none and value is None:
-                    continue
+            # 排除 None 值（如果用户在 to_schema 中设置了 exclude_none=True）
+            if exclude_none and value is None:
+                continue
 
-                # 处理别名
-                try:
-                    # Pydantic v2
-                    alias = field_info.alias
-                except AttributeError:
-                    # Pydantic v1
-                    alias = field_info.alias
-                
-                key = alias if by_alias and alias else name
-                raw[key] = value
+            # 处理别名
+            try:
+                # Pydantic v2
+                alias = field_info.alias
+            except AttributeError:
+                # Pydantic v1
+                alias = field_info.alias
+            
+            key = alias if by_alias and alias else name
+            raw[key] = value
 
         # 2. 合并额外字段
         extra = self.extra_schema()
@@ -98,6 +97,28 @@ class BaseBuilder(BaseModel, ABC):
 
     def extra_schema(self) -> Optional[Dict[str, Any]]:
         return None
+    
+    @property
+    def schema(self) -> Any:
+        """
+        用于获取页面配置
+        
+        Returns:
+            页面配置
+        """
+        if hasattr(self, "_schema"):
+            return self._schema
+        return None
+    
+    @schema.setter
+    def schema(self, value: Any) -> None:
+        """
+        用于设置页面配置
+        
+        Args:
+            value: 页面配置
+        """
+        self._schema = value
 
     def _walk_children(self, obj: Any, exclude_none: bool = True) -> Any:
 

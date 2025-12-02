@@ -14,6 +14,10 @@ src/amis_python/builder/api.py
 src/amis_python/builder/app.py
 src/amis_python/builder/base.py
 src/amis_python/builder/page.py
+src/amis_python/builder/app/__init__.py
+src/amis_python/builder/app/app.py
+src/amis_python/builder/app/group.py
+src/amis_python/builder/app/page.py
 tests/test_app.py
 tests/test_builder.py
 tests/test_page_registration.py
