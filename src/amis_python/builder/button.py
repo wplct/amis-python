@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Dict, Optional, Union, Literal
+from typing import Any, Dict, List, Optional, Union, Literal
 from pydantic import BaseModel, Field
 
 from .base import BaseBuilder
@@ -30,9 +30,6 @@ class ButtonBuilder(BaseBuilder):
     level: Optional[Literal["link", "primary", "enhance", "secondary", "info", "success", "warning", "danger", "light", "dark", "default"]] = Field("default", description="设置按钮样式")
     block: Optional[bool] = Field(False, description="将按钮宽度调整为其父宽度的选项")
     
-    # === 行为配置 ===
-    action_type: Optional[Literal["button", "reset", "submit", "clear", "url"]] = Field("button", description="设置按钮类型")
-    
     # === 状态配置 ===
     disabled: Optional[bool] = Field(False, description="按钮失效状态")
     loading: Optional[bool] = Field(False, description="显示按钮 loading 效果")
@@ -43,3 +40,9 @@ class ButtonBuilder(BaseBuilder):
     tooltip_placement: Optional[Literal["top", "right", "bottom", "left"]] = Field("top", description="气泡框位置器")
     tooltip_trigger: Optional[Literal["hover", "focus"]] = Field(None, description="触发 tooltip")
     disabled_tip: Optional[Union[str, Dict[str, Any]]] = Field(None, description="按钮失效状态下的提示")
+    
+    # === 功能配置 ===
+    action_type: Optional[str] = Field(None, description="动作类型，如submit、reset等", alias="actionType")
+    name: Optional[str] = Field(None, description="组件名称，用于表单提交时的标识")
+    value: Optional[Any] = Field(None, description="组件值，用于表单提交时的值")
+

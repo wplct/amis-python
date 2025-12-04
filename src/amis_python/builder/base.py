@@ -14,12 +14,9 @@ Pydantic 基础构造器模块，为所有 amis 节点提供统一的序列化�
 from abc import ABC
 from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field
-from typing_extensions import Literal  # 兼容 Python <3.8
-
 from .event import EventAction
-
-
 from .utils import camelize
+# from .. import ActionBuilder, AmisEvent
 
 
 class BaseBuilder(BaseModel, ABC):
@@ -34,6 +31,55 @@ class BaseBuilder(BaseModel, ABC):
     
     # 事件动作配置
     on_event: Optional[Dict[str, EventAction]] = Field(None, description="事件动作配置")
+    
+    def add_action(
+        self, 
+        event_name: Union[str, 'AmisEvent'],
+        *actions: 'ActionBuilder'
+    ) -> 'BaseBuilder':
+        """
+        动态添加事件动作
+        
+        Args:
+            event_name: 事件名称，如 "click"、"change" 等，或 AmisEvent 枚举
+            actions: 动作列表，每个动作可以是字典或 ActionBuilder 实例
+            
+        Returns:
+            self: 支持链式调用
+        """
+        from .event import AmisEvent
+        from .action.action import ActionBuilder
+        
+        # 初始化 on_event 字典（如果不存在）
+        if self.on_event is None:
+            self.on_event = {}
+        
+        # 处理事件名称为枚举的情况
+        if isinstance(event_name, AmisEvent):
+            event_name_str = event_name.value
+        else:
+            event_name_str = event_name
+        
+        # 处理动作列表，将 ActionBuilder 实例转换为字典
+        processed_actions = []
+        for action in actions:
+            if isinstance(action, ActionBuilder):
+                processed_actions.append(action.to_schema())
+            else:
+                processed_actions.append(action)
+        
+        # 创建 EventAction 对象
+        from .event import EventAction
+        event_action = EventAction(actions=processed_actions)
+        
+        # 添加到 on_event 字典
+        if event_name_str in self.on_event:
+            self.on_event[event_name_str].actions.extend(event_action.actions)
+        else:
+            self.on_event[event_name_str] = event_action
+        
+        # 返回 self 支持链式调用
+        return self
 
     def to_schema(
             self,

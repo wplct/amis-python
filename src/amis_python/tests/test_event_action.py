@@ -110,6 +110,77 @@ class TestEventAction(unittest.TestCase):
         self.assertEqual(len(schema["onEvent"]["mouseenter"]["actions"]), 1)
         self.assertEqual(schema["onEvent"]["click"]["actions"][0]["args"]["msg"], "点击事件触发")
         self.assertEqual(schema["onEvent"]["mouseenter"]["actions"][0]["args"]["msg"], "鼠标移入事件触发")
+    
+    def test_add_action_method(self):
+        """测试add_action方法"""
+        # 创建按钮
+        button = ButtonBuilder(label="测试按钮")
+        
+        # 使用add_action方法添加点击事件
+        button.add_action(
+            event_name="click",
+            actions=[
+                {
+                    "actionType": "toast",
+                    "args": {
+                        "msgType": "success",
+                        "msg": "add_action方法测试成功"
+                    }
+                }
+            ]
+        )
+        
+        # 生成schema
+        schema = button.to_schema()
+        
+        # 验证结果
+        self.assertEqual(schema["type"], "button")
+        self.assertIn("onEvent", schema)
+        self.assertIn("click", schema["onEvent"])
+        self.assertEqual(len(schema["onEvent"]["click"]["actions"]), 1)
+        self.assertEqual(schema["onEvent"]["click"]["actions"][0]["actionType"], "toast")
+        self.assertEqual(schema["onEvent"]["click"]["actions"][0]["args"]["msg"], "add_action方法测试成功")
+    
+    def test_add_action_chaining(self):
+        """测试add_action方法的链式调用"""
+        # 创建按钮并链式添加多个事件
+        button = ButtonBuilder(label="测试按钮")
+        button.add_action(
+            event_name="click",
+            actions=[
+                {
+                    "actionType": "toast",
+                    "args": {
+                        "msgType": "success",
+                        "msg": "点击事件"
+                    }
+                }
+            ]
+        ).add_action(
+            event_name="mouseenter",
+            actions=[
+                {
+                    "actionType": "toast",
+                    "args": {
+                        "msgType": "info",
+                        "msg": "鼠标移入事件"
+                    }
+                }
+            ]
+        )
+        
+        # 生成schema
+        schema = button.to_schema()
+        
+        # 验证结果
+        self.assertEqual(schema["type"], "button")
+        self.assertIn("onEvent", schema)
+        self.assertIn("click", schema["onEvent"])
+        self.assertIn("mouseenter", schema["onEvent"])
+        self.assertEqual(len(schema["onEvent"]["click"]["actions"]), 1)
+        self.assertEqual(len(schema["onEvent"]["mouseenter"]["actions"]), 1)
+        self.assertEqual(schema["onEvent"]["click"]["actions"][0]["args"]["msg"], "点击事件")
+        self.assertEqual(schema["onEvent"]["mouseenter"]["actions"][0]["args"]["msg"], "鼠标移入事件")
 
 
 if __name__ == '__main__':
