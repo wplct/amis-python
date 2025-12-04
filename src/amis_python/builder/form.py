@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 from pydantic import Field
 
 from .base import BaseBuilder
@@ -29,7 +29,7 @@ class FormBuilder(BaseBuilder):
     api: Optional[str] = Field(None, description="表单提交API")
     
     # 表单内容
-    body: List[Union[BaseBuilder, dict]] = Field(..., description="表单内容")
+    body: List[Any] = Field(..., description="表单内容")
     
     # 表单按钮
     actions: Optional[List[Union[ButtonBuilder, dict]]] = Field(None, description="表单按钮")
@@ -41,6 +41,6 @@ class FormBuilder(BaseBuilder):
     mode: Optional[str] = Field(None, description="表单模式")
     
     # 布局属性
-    horizontal: Optional[bool] = Field(True, description="是否水平布局")
-    label_align: Optional[str] = Field("right", description="标签对齐方式", alias="labelAlign")
-    label_width: Optional[Union[str, int]] = Field(80, description="标签宽度", alias="labelWidth")
+    horizontal: Optional[bool] = Field(None, description="是否水平布局")
+    label_align: Optional[str] = Field(None, description="标签对齐方式", alias="labelAlign")
+    label_width: Optional[Union[str, int]] = Field(None, description="标签宽度", alias="labelWidth")

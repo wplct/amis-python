@@ -8,6 +8,7 @@ from . import AppBuilder, register_default_app
 _default_amis_app: Optional[AppBuilder] = None
 from django.utils.module_loading import module_has_submodule
 from importlib import import_module
+from django.apps import apps
 
 class AmisPythonConfig(AppConfig):
     """
@@ -30,16 +31,17 @@ class AmisPythonConfig(AppConfig):
         self._discover_amis_configs()
 
     def _discover_amis_configs(self):
-        """扫描并加载其他Django应用中的amis配置"""
-        from django.apps import apps
-
+        """扫描并加载其他 Django 应用中的 amis 配置（支持单文件和目录包）"""
         for app_config in apps.get_app_configs():
-            try:
-                # 检查app是否有amis模块
-                if module_has_submodule(app_config.module, 'amis'):
-                    amis_module = import_module(f'{app_config.name}.amis')
-                    # 如果amis模块有register函数，则调用它
-                    if hasattr(amis_module, 'register'):
-                        amis_module.register()
-            except ImportError:
-                pass  # 忽略无法导入的模块
+            # 1. 先快速判断有没有 amis 这个“子模块”
+            if not module_has_submodule(app_config.module, "amis"):
+                continue
+
+            # 2. 真正 import 它（文件或目录都会成功）
+            amis_module = import_module(f"{app_config.name}.amis")
+            print(f"正在加载 {app_config.name} 的 amis 配置...")
+
+            # 3. 如果包里提供了 register 函数，就调用它
+            if hasattr(amis_module, "register"):
+                amis_module.register()
+                print(f"{app_config.name} 的 amis 配置已加载。")

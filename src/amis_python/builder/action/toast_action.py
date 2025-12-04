@@ -18,14 +18,24 @@ class ToastActionBuilder(ActionBuilder):
     """
     action_type: Literal["toast"] = "toast"
     
-    # 提示消息内容
-    msg: str = Field(..., description="提示消息内容")
-    
-    # 提示类型
-    msg_type: Optional[Literal["info", "success", "warning", "error"]] = Field("info", description="提示类型", alias="msgType")
-    
-    # 持续时间
-    duration: Optional[int] = Field(3000, description="提示持续时间，单位毫秒")
-    
-    # 是否自动关闭
-    close: Optional[bool] = Field(True, description="是否自动关闭")
+    def __init__(self, **data):
+        # 将所有参数包装到args字段中
+        args = {}
+        
+        # 提取msg和msg_type参数
+        if "msg" in data:
+            args["msg"] = data.pop("msg")
+        
+        if "msg_type" in data:
+            args["msgType"] = data.pop("msg_type")
+        
+        if "duration" in data:
+            args["duration"] = data.pop("duration")
+        
+        if "close" in data:
+            args["close"] = data.pop("close")
+        
+        # 将args添加到data中
+        data["args"] = args
+        
+        super().__init__(**data)

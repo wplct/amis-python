@@ -32,7 +32,7 @@ def amis_index(request) -> HttpResponse:
     # 获取当前文件所在目录
     current_dir = os.path.dirname(os.path.abspath(__file__))
     # 构建 index.html 文件的路径
-    index_path = os.path.join(current_dir, 'static', 'amis_python', 'index.html')
+    index_path = os.path.join(current_dir, 'static', 'amis', 'index.html')
     
     # 如果文件存在，直接返回文件内容
     if os.path.exists(index_path):

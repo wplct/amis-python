@@ -51,7 +51,7 @@ class AppPageBuilder(BaseBuilder):
         paths = [p for p in path.split('/') if p]
         self_paths = [p for p in self.path.split('/') if p]
         if len(paths) - len(self_paths) == 1:
-            app_page = AppPageBuilder(label=label, path=path)
+            app_page = AppPageBuilder(label=label, path=path, url=path)
             self.children.append(app_page)
             return app_page
         elif len(paths) - len(self_paths) > 1:

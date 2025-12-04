@@ -27,9 +27,9 @@ class PageBuilder(BaseBuilder):
     remark: Optional[Any] = Field(None, description="标题附近的提示图标，鼠标放上去会提示该内容")
     
     # === 区域配置 ===
-    body: List[Any] = Field(default_factory=list, description="页面内容区域")
-    aside: Optional[Any] = Field(None, description="侧边栏区域")
-    toolbar: Optional[Any] = Field(None, description="工具栏区域")
+    body: Union[str, List[Any]] = Field(default_factory=list, description="页面内容区域")
+    aside: Optional[Union[str, List[Any]]] = Field(None, description="侧边栏区域")
+    toolbar: Optional[Union[str, List[Any]]] = Field(None, description="工具栏区域")
     
     # === API 配置 ===
     init_api: Optional[Union[str, AmisApiObject]] = Field(None, description="页面初始化请求的接口")

@@ -32,7 +32,7 @@ class AppPageGroupBuilder(BaseBuilder):
 
         paths = [p for p in path.split('/') if p]
         if len(paths) == 1:
-            page = AppPageBuilder(label=label, path=path)
+            page = AppPageBuilder(label=label, path=path, url=path)
             self.children.append(page)
             return page
 
@@ -40,7 +40,7 @@ class AppPageGroupBuilder(BaseBuilder):
             if path.startswith(child.path):
                 return child.register_page(label,path)
 
-        child = AppPageBuilder(path='/' + paths[0], children=[])
+        child = AppPageBuilder(path='/' + paths[0], url='/' + paths[0], children=[])
         self.children.append(child)
         return child.register_page(label,path)
 
