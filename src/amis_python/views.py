@@ -1,6 +1,6 @@
 from django.http import JsonResponse, HttpResponse
 import os
-from .registry import get_default_app
+from .registry import get_default_app, get_page
 
 
 def get_amis_app_config(request) -> JsonResponse:
@@ -20,35 +20,14 @@ def get_amis_app_config(request) -> JsonResponse:
 def get_page_config(request, page_path: str) -> JsonResponse:
     """
     获取页面配置
-    
-    Args:
-        request: Django 请求对象
-        page_path: 页面路径
-        
-    Returns:
-        JsonResponse，包含页面配置
     """
-    if get_default_app() is None:
-        return JsonResponse({"error": "Default amis app not registered"}, status=500)
-    
-    # 构建完整路径
-    full_path = f"/{page_path}"
-    page = get_default_app().get_page(full_path)
-    
-    if not page:
-        return JsonResponse({"error": f"Page '{full_path}' not found"}, status=404)
-    
+    page_path = '/' + page_path
+    page = get_page(page_path)
     return JsonResponse(page.to_schema())
 
 def amis_index(request) -> HttpResponse:
     """
     提供 AMIS 应用的首页
-    
-    Args:
-        request: Django 请求对象
-        
-    Returns:
-        HttpResponse，包含 AMIS 应用的首页 HTML
     """
     # 获取当前文件所在目录
     current_dir = os.path.dirname(os.path.abspath(__file__))

@@ -26,20 +26,19 @@ class AppPageBuilder(BaseBuilder):
     children: Optional[List["AppPageBuilder"]] = Field([], description="分组内包含的页面或嵌套分组")
     # ---- 辅助字段 ----
     path: Optional[str] = Field(None, description="页面路径,对于Amis没用")
+    lazy_schema: Optional[PageBuilder] = Field(None, description="懒加载页面", exclude=True)
 
     def get_page(self, path: str) -> Optional[PageBuilder]:
         """
         根据路径获取已注册的页面
-        
-        Args:
-            path: 页面路径，如 "/list/abc" or "/list/a/b"
-            
-        Returns:
-            找到的 PageBuilder 实例，未找到则返回 None
         """
-        if self.url == path:
-            return self.schema
-        return None
+        if self.path == path:
+            return self.lazy_schema
+        elif self.children:
+            for child in self.children:
+                if path.startswith(child.path):
+                    return child.get_page(path)
+        raise ValueError(f"页面不存在 {path}")
 
     def register_page(
             self,
@@ -62,3 +61,6 @@ class AppPageBuilder(BaseBuilder):
             raise ValueError(f"上级页面不存在 {path}")
         else:
             raise ValueError(f"path 注册错误 {path} {self.path}")
+
+    def set_page_schema(self, schema: PageBuilder):
+        self.lazy_schema = schema

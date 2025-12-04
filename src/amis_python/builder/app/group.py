@@ -14,7 +14,7 @@ class AppPageGroupBuilder(BaseBuilder):
     """
     type: Literal["group"] = "group"
     label: Optional[str] = Field(None, description="分组在导航菜单中显示的标题")
-    children: List[Union[AppPageBuilder, "AppPageGroupBuilder"]] = Field(
+    children: List[Union[AppPageBuilder]] = Field(
         default_factory=list,
         description="分组内包含的页面或嵌套分组"
     )
@@ -47,22 +47,9 @@ class AppPageGroupBuilder(BaseBuilder):
     def get_page(self, path: str) -> Optional[PageBuilder]:
         """
         根据路径获取已注册的页面
-        
-        Args:
-            path: 页面路径，如 "/list"
-            
-        Returns:
-            找到的 PageBuilder 实例，未找到则返回 None
         """
         # 遍历子节点
         for child in self.children:
-            if isinstance(child, AppPageBuilder):
-                if child.url == path:
-                    return child.schema
-            elif isinstance(child, AppPageGroupBuilder):
-                # 递归查找子分组
-                page = child.get_page(path)
-                if page:
-                    return page
-
-        return None
+            if path.startswith(child.path):
+                return child.get_page(path)
+        raise ValueError(f"未找到页面：{path}")

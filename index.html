@@ -46,55 +46,8 @@
         // const history = History.createBrowserHistory();
         const history = History.createHashHistory();
 
-        const app = {
-            type: 'app',
-            brandName: 'Admin',
-            logo: '/public/logo.png',
-            header: {
-                type: 'tpl',
-                inline: false,
-                className: 'w-full',
-                tpl: '<div class="flex justify-between"><div>顶部区域左侧</div><div>顶部区域右侧</div></div>'
-            },
-            // footer: '<div class="p-2 text-center bg-light">底部区域</div>',
-            // asideBefore: '<div class="p-2 text-center">菜单前面区域</div>',
-            // asideAfter: '<div class="p-2 text-center">菜单后面区域</div>',
+        const app = {"type": "app", "brandName": "amis-python", "affixHeader": true, "asideFixed": true, "asideFolded": false, "pages": [{"type": "group", "label": "", "children": [{"type": "appPage", "label": "\u6d4b\u8bd5\u9875\u9762", "children": [{"type": "appPage", "label": "\u6d4b\u8bd5\u9875\u9762", "children": [{"type": "appPage", "label": "\u6d4b\u8bd5\u9875\u9762", "schema": {"type": "page", "title": "\u6d4b\u8bd5\u9875\u9762a", "body": []}, "children": [], "path": "/test/abc/a"}, {"type": "appPage", "label": "\u6d4b\u8bd5\u9875\u9762", "schema": {"type": "page", "title": "\u6d4b\u8bd5\u9875\u9762c", "body": []}, "children": [], "path": "/test/abc/c"}], "path": "/test/abc"}], "path": "/test"}]}]}
 
-            "pages": [
-                {
-                    "type": "group",
-                    "label": "",
-                    "children": [
-                        {
-                            "type": "appPage",
-                            "label": "测试页面",
-                            "children": [
-                                {
-                                    "type": "appPage",
-                                    "label": "测试页面",
-                                    "children": [
-                                        {
-                                            "type": "appPage",
-                                            "label": "测试页面",
-                                            "schema": {
-                                                "type": "page",
-                                                "title": "测试页面",
-                                                "body": []
-                                            },
-                                            "children": [],
-                                            "path": "/test/abc/abc"
-                                        }
-                                    ],
-                                    "path": "/test/abc"
-                                }
-                            ],
-                            "path": "/test"
-                        }
-                    ]
-                }
-            ]
-
-        };
 
         function normalizeLink(to, location = history.location) {
             to = to || '';

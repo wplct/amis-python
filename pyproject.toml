@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8" # 修改为 Python 3.8+
 dependencies = [
     "django-ninja>=1.5.0",
+    "mypy>=1.14.1",
     "pydantic>=1.6", # 修改为兼容 pydantic 1.6+ 和 2.0+
     "typing_extensions>=3.7.4.3", # 为 Python 3.8 提供 typing_extensions 支持
 ]

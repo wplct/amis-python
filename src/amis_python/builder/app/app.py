@@ -105,7 +105,7 @@ class AppBuilder(BaseBuilder):
             label: str,
             path: str,
             page: Optional[PageBuilder] = None,
-            group_label: Optional[str] = None
+            group_label: Optional[str] = ''
     ) -> AppPageBuilder:
         """
         注册页面，需要指定分组
@@ -120,10 +120,12 @@ class AppBuilder(BaseBuilder):
         """
 
         # 将页面添加到指定分组
-        group = self.get_group(group_label) or self.get_group("")
+        group = self.get_group(group_label)
         app_page = group.register_page(label, path)
         if page:
-            app_page.schema = page
+            app_page.set_page_schema(page)
+            print(app_page.schema_api)
+            app_page.schema_api = f"/amis/page{path}"
         return app_page
 
     def register_page_group(
@@ -149,42 +151,19 @@ class AppBuilder(BaseBuilder):
         self.pages.append(new_group)
         return new_group
 
-    def get_group(self, label: str) -> Optional[AppPageGroupBuilder]:
+    def get_group(self, label: str="") -> Optional[AppPageGroupBuilder]:
         """
         根据分组标题获取已注册的分组
-
-        Args:
-            label: 分组标题
-
-        Returns:
-            找到的 AppPageGroupBuilder 实例，未找到则返回 None
         """
         for group in self.pages:
             if group.label == label:
                 return group
-        return None
+        raise ValueError(f"Group '{label}' does not exist.")
 
-    def get_page(self, path: str) -> Optional[PageBuilder]:
+    def get_page(self, path: str) -> PageBuilder:
         """
         根据路径获取已注册的页面
-        
-        Args:
-            path: 页面路径，如 "/home" 或 "/users/list"
-            
-        Returns:
-            找到的 PageBuilder 实例，未找到则返回 None
         """
-        # 遍历所有分组
-        for group in self.pages:
-            # 遍历分组内的所有页面
-            for child in group.children:
-                if isinstance(child, AppPageBuilder):
-                    if child.url == path:
-                        return child.schema
-                elif isinstance(child, AppPageGroupBuilder):
-                    # 递归查找子分组
-                    page = child.get_page(path)
-                    if page:
-                        return page
-
-        return None
+        # 暂时只支持默认分组
+        group = self.get_group()
+        return group.get_page(path)

@@ -5,6 +5,7 @@ Summary: Python-side schema builder for amis JSON
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 Requires-Dist: django-ninja>=1.5.0
+Requires-Dist: mypy>=1.14.1
 Requires-Dist: pydantic>=1.6
 Requires-Dist: typing_extensions>=3.7.4.3
 

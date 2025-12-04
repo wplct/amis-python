@@ -3,6 +3,7 @@ pyproject.toml
 src/amis_python/__init__.py
 src/amis_python/apps.py
 src/amis_python/ninja_api.py
+src/amis_python/registry.py
 src/amis_python/urls.py
 src/amis_python/views.py
 src/amis_python.egg-info/PKG-INFO
@@ -19,6 +20,7 @@ src/amis_python/builder/app/app.py
 src/amis_python/builder/app/group.py
 src/amis_python/builder/app/page.py
 src/amis_python/tests/__init__.py
+src/amis_python/tests/test_app_register.py
 tests/test_app.py
 tests/test_builder.py
 tests/test_page_registration.py

@@ -11,13 +11,6 @@ _register_lock = threading.Lock()
 def register_default_app(app: AppBuilder) -> None:
     """
     注册默认的 amis 应用实例（仅允许注册一次）
-
-    Args:
-        app: 要注册的 AppBuilder 实例
-
-    Raises:
-        ValueError: 如果已注册过
-        TypeError: 如果传入的不是 AppBuilder 实例（可选增强）
     """
     global _default_amis_app
     if not isinstance(app, AppBuilder):
@@ -32,9 +25,6 @@ def register_default_app(app: AppBuilder) -> None:
 def register_group(group: AppPageGroupBuilder) -> None:
     """
     注册默认 amis 应用实例的分组
-
-    Args:
-        group: 分组构建器
     """
     get_default_app().register_group(group)
 
@@ -49,12 +39,6 @@ def register_page(label: str, path: str, page: PageBuilder=None) -> AppPageBuild
 def get_default_app() -> AppBuilder:
     """
     获取已注册的默认 amis 应用实例
-
-    Returns:
-        已注册的 AppBuilder 实例
-
-    Raises:
-        RuntimeError: 如果尚未注册
     """
     if _default_amis_app is None:
         raise RuntimeError(
@@ -62,3 +46,10 @@ def get_default_app() -> AppBuilder:
             "Call `register_default_app(app)` first."
         )
     return _default_amis_app
+
+
+def get_page(path: str) -> PageBuilder:
+    """
+    根据路径获取已注册的页面
+    """
+    return get_default_app().get_page(path)

@@ -3,7 +3,7 @@ from django.conf import settings
 import django
 from django.test.utils import setup_test_environment
 
-from amis_python.registry import register_page
+from amis_python.registry import register_page,get_page
 
 # 如果尚未配置 Django 设置
 if not settings.configured:
@@ -40,8 +40,18 @@ class TestAppRegister(TestCase):
     def test_register_page(self):
         register_page("测试页面","/test")
         register_page("测试页面","/test/abc")
-        register_page("测试页面","/test/abc/abc",PageBuilder(
-            title="测试页面",
+        register_page("测试页面","/test/abc/a",PageBuilder(
+            title="测试页面a",
+        ))
+        register_page("测试页面","/test/abc/c",PageBuilder(
+            title="测试页面c",
         ))
         app = get_default_app()
-        print(json.dumps(app.to_schema()))
+        group_schema = app.to_schema()["pages"][0]
+        self.assertEqual(group_schema["children"][0]["label"], "测试页面")
+        self.assertEqual(group_schema["children"][0]["children"][0]["label"], "测试页面")
+
+        self.assertEqual(get_page('/test/abc/c').to_schema()["title"], "测试页面c")
+        self.assertEqual(get_page('/test/abc/a').to_schema()["title"], "测试页面a")
+
+
