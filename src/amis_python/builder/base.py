@@ -13,38 +13,27 @@ Pydantic 基础构造器模块，为所有 amis 节点提供统一的序列化�
 
 from abc import ABC
 from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing_extensions import Literal  # 兼容 Python <3.8
 
+from .event import EventAction
 
-# 动态检测 Pydantic 版本，选择合适的配置方式
-try:
-    # 检查是否是 Pydantic v2
-    from pydantic import ConfigDict
-    IS_PYDANTIC_V2 = True
-except ImportError:
-    # Pydantic v1
-    IS_PYDANTIC_V2 = False
-def camelize(name: str) -> str:
-    """snake_case -> camelCase"""
-    parts = name.split('_')
-    return parts[0] + ''.join(word.capitalize() for word in parts[1:])
+
+from .utils import camelize
+
 
 class BaseBuilder(BaseModel, ABC):
-    if IS_PYDANTIC_V2:                       # ----------- Pydantic V2 -----------
-        model_config = {
-            "validate_default": True,
-            "populate_by_name": True,        # 允许用原始字段名反序列化
-            "alias_generator": camelize,     # 👈 关键：自动生成驼峰别名
-        }
-    else:                                    # ----------- Pydantic V1 -----------
-        class Config:
-            validate_default = True
-            allow_population_by_field_name = True
-            alias_generator = camelize       # 👈 关键：自动生成驼峰别名
+    model_config = {
+        "validate_default": True,
+        "populate_by_name": True,        # 允许用原始字段名反序列化
+        "alias_generator": camelize,     # 👈 关键：自动生成驼峰别名
+    }
 
     # type 由子类以 Literal 字段形式提供，确保是 Pydantic 字段
     type: str
+    
+    # 事件动作配置
+    on_event: Optional[Dict[str, EventAction]] = Field(None, description="事件动作配置")
 
     def to_schema(
             self,
@@ -53,14 +42,11 @@ class BaseBuilder(BaseModel, ABC):
             exclude_none: bool = True,
             **dump_kwargs: Any,
     ) -> Dict[str, Any]:
-        # 1. 使用 model_dump(exclude_none=False) 获取所有字段，
-        #    并让它进行默认的字典序列化（如您遇到的问题）。
-        if IS_PYDANTIC_V2:
-            raw = self.model_dump(exclude_none=exclude_none,by_alias=by_alias,**dump_kwargs)
-        else:
-            raw = self.dict(exclude_none=exclude_none,by_alias=by_alias,**dump_kwargs)
+        # 1. 使用 model_dump 获取所有字段，
+        #    并让它进行默认的字典序列化
+        raw = self.model_dump(exclude_none=exclude_none, by_alias=by_alias, **dump_kwargs)
         # 3. 递归展开所有嵌套的 BaseBuilder（此时 raw 中包含 BaseBuilder 实例）
-        return self._walk_children(raw, exclude_none=exclude_none)  # 假设 _walk_children 已修改以处理 exclude_none
+        return self._walk_children(raw, exclude_none=exclude_none)
 
     def _walk_children(self, obj: Any, exclude_none: bool = True) -> Any:
 
