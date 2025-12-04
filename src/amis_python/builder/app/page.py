@@ -11,9 +11,9 @@ class AppPageBuilder(BaseBuilder):
     表示一个应用中的独立页面（可出现在导航菜单中）。
     对应 AMIS pages 配置中的单个页面项（非分组）。
     """
-    type: Literal["page"] = "page"
+    type: Literal["appPage"] = "appPage"
     label: Optional[str] = Field(None, description="页面在导航菜单中显示的名称")
-    url: str = Field(..., description="页面路由路径")
+    url: Optional[str] = Field(None, description="页面路由路径")
     schema: Optional[PageBuilder] = Field(None, description="页面配置")
     icon: Optional[str] = Field(None, description="菜单图标，比如：fa fa-file")
     schema_api: Optional[Union[str, dict]] = Field(None, description="如果想通过接口拉取，请配置。返回路径为 json>data")
@@ -23,13 +23,16 @@ class AppPageBuilder(BaseBuilder):
     is_default_page: Optional[bool] = Field(None, description="当你需要自定义 404 页面的时候有用")
     visible: Optional[bool] = Field(None, description="有些页面可能不想出现在菜单中，可以配置成 false")
     class_name: Optional[str] = Field(None, description="菜单类名")
-    
+    children: Optional[List["AppPageBuilder"]] = Field([], description="分组内包含的页面或嵌套分组")
+    # ---- 辅助字段 ----
+    path: Optional[str] = Field(None, description="页面路径,对于Amis没用")
+
     def get_page(self, path: str) -> Optional[PageBuilder]:
         """
         根据路径获取已注册的页面
         
         Args:
-            path: 页面路径，如 "/list" 或 "/detail/{id}"
+            path: 页面路径，如 "/list/abc" or "/list/a/b"
             
         Returns:
             找到的 PageBuilder 实例，未找到则返回 None
@@ -37,19 +40,25 @@ class AppPageBuilder(BaseBuilder):
         if self.url == path:
             return self.schema
         return None
-    
-    def to_schema(
+
+    def register_page(
             self,
-            *, 
-            by_alias: bool = True,
-            exclude_none: bool = True,
-            **dump_kwargs: Any,
-    ) -> Dict[str, Any]:
-        # 获取基本字段
-        result = super().to_schema(by_alias=by_alias, exclude_none=exclude_none, **dump_kwargs)
-        
-        # 移除 schema 字段，因为它不应该出现在最终的 JSON 中
-        if "schema" in result:
-            del result["schema"]
-        
-        return result
+            label: str,
+            path: str,
+    ) -> "AppPageBuilder":
+        if not path.startswith(self.path):
+            raise ValueError(f"Path '{path}' is not under '{self.path}'.")
+
+        paths = [p for p in path.split('/') if p]
+        self_paths = [p for p in self.path.split('/') if p]
+        if len(paths) - len(self_paths) == 1:
+            app_page = AppPageBuilder(label=label, path=path)
+            self.children.append(app_page)
+            return app_page
+        elif len(paths) - len(self_paths) > 1:
+            for child in self.children:
+                if path.startswith(child.path):
+                    return child.register_page(label, path)
+            raise ValueError(f"上级页面不存在 {path}")
+        else:
+            raise ValueError(f"path 注册错误 {path} {self.path}")

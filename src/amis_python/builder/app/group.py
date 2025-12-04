@@ -20,63 +20,36 @@ class AppPageGroupBuilder(BaseBuilder):
     )
     icon: Optional[str] = Field(None, description="菜单图标，比如：fa fa-file")
     class_name: Optional[str] = Field(None, description="菜单类名")
-    
+
     def register_page(
-        self,
-        path: str,
-        page: PageBuilder,
-        label: Optional[str] = None
+            self,
+            label: str,
+            path: str,
     ) -> "AppPageBuilder":
         """
         在当前分组下注册页面
-        
-        Args:
-            path: 页面路径，如 "/list" 或 "/detail/{id}"
-            page: 页面实例
-            label: 页面在导航菜单中显示的名称
-            
-        Returns:
-            注册的 AppPageBuilder 实例
         """
-        # 创建页面实例
-        app_page = AppPageBuilder(
-            label=label or path.split("/")[-1],
-            url=path,
-            schema=page
-        )
-        
-        # 将页面添加到当前分组
-        self.children.append(app_page)
-        
-        return app_page
-    
-    def register_subgroup(
-        self,
-        label: Optional[str] = None
-    ) -> "AppPageGroupBuilder":
-        """
-        在当前分组下注册子分组
-        
-        Args:
-            label: 分组在导航菜单中显示的标题
-            
-        Returns:
-            注册的 AppPageGroupBuilder 实例
-        """
-        # 创建子分组实例
-        subgroup = AppPageGroupBuilder(label=label, children=[])
-        
-        # 将子分组添加到当前分组
-        self.children.append(subgroup)
-        
-        return subgroup
-    
+
+        paths = [p for p in path.split('/') if p]
+        if len(paths) == 1:
+            page = AppPageBuilder(label=label, path=path)
+            self.children.append(page)
+            return page
+
+        for child in self.children:
+            if path.startswith(child.path):
+                return child.register_page(label,path)
+
+        child = AppPageBuilder(path='/' + paths[0], children=[])
+        self.children.append(child)
+        return child.register_page(label,path)
+
     def get_page(self, path: str) -> Optional[PageBuilder]:
         """
         根据路径获取已注册的页面
         
         Args:
-            path: 页面路径，如 "/list" 或 "/detail/{id}"
+            path: 页面路径，如 "/list"
             
         Returns:
             找到的 PageBuilder 实例，未找到则返回 None
@@ -91,5 +64,5 @@ class AppPageGroupBuilder(BaseBuilder):
                 page = child.get_page(path)
                 if page:
                     return page
-        
+
         return None

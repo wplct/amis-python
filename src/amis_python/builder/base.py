@@ -5,7 +5,6 @@ Pydantic 基础构造器模块，为所有 amis 节点提供统一的序列化�
 核心功能：
 - 所有 amis 组件继承自 BaseBuilder；
 - 自动递归将嵌套的组件转换为符合 amis 规范的 JSON 字典；
-- 支持通过 extra_schema() 钩子追加动态字段；
 - 强制每个组件必须声明 type 字段（由子类以 Literal 形式提供）。
 
 注意：type 字段不再通过抽象属性强制，而是作为 Pydantic 模型字段，
@@ -26,22 +25,23 @@ try:
 except ImportError:
     # Pydantic v1
     IS_PYDANTIC_V2 = False
-
+def camelize(name: str) -> str:
+    """snake_case -> camelCase"""
+    parts = name.split('_')
+    return parts[0] + ''.join(word.capitalize() for word in parts[1:])
 
 class BaseBuilder(BaseModel, ABC):
-    # 动态配置，兼容 Pydantic v1 和 v2
-    if IS_PYDANTIC_V2:
-        # Pydantic v2 配置
+    if IS_PYDANTIC_V2:                       # ----------- Pydantic V2 -----------
         model_config = {
             "validate_default": True,
-            "populate_by_name": True,
+            "populate_by_name": True,        # 允许用原始字段名反序列化
+            "alias_generator": camelize,     # 👈 关键：自动生成驼峰别名
         }
-    else:
-        # Pydantic v1 配置
+    else:                                    # ----------- Pydantic V1 -----------
         class Config:
             validate_default = True
-            # 启用 alias 支持
             allow_population_by_field_name = True
+            alias_generator = camelize       # 👈 关键：自动生成驼峰别名
 
     # type 由子类以 Literal 字段形式提供，确保是 Pydantic 字段
     type: str
@@ -55,70 +55,12 @@ class BaseBuilder(BaseModel, ABC):
     ) -> Dict[str, Any]:
         # 1. 使用 model_dump(exclude_none=False) 获取所有字段，
         #    并让它进行默认的字典序列化（如您遇到的问题）。
-        #    如果必须避免自动序列化，我们绕过 model_dump。
-
-        # 绕过 model_dump()，直接从实例中获取字段值
-        raw = {}
-        
-        # 兼容 Pydantic v1 和 v2
-        try:
-            # Pydantic v2
-            fields = self.model_fields
-        except AttributeError:
-            # Pydantic v1
-            fields = self.__fields__
-        
-        for name, field_info in fields.items():
-            # 获取字段值，不管它是否存在于 __dict__ 中
-            value = getattr(self, name)
-
-            # 排除 None 值（如果用户在 to_schema 中设置了 exclude_none=True）
-            if exclude_none and value is None:
-                continue
-
-            # 处理别名
-            try:
-                # Pydantic v2
-                alias = field_info.alias
-            except AttributeError:
-                # Pydantic v1
-                alias = field_info.alias
-            
-            key = alias if by_alias and alias else name
-            raw[key] = value
-
-        # 2. 合并额外字段
-        extra = self.extra_schema()
-        if extra:
-            raw.update(extra)
-
+        if IS_PYDANTIC_V2:
+            raw = self.model_dump(exclude_none=exclude_none,by_alias=by_alias,**dump_kwargs)
+        else:
+            raw = self.dict(exclude_none=exclude_none,by_alias=by_alias,**dump_kwargs)
         # 3. 递归展开所有嵌套的 BaseBuilder（此时 raw 中包含 BaseBuilder 实例）
         return self._walk_children(raw, exclude_none=exclude_none)  # 假设 _walk_children 已修改以处理 exclude_none
-
-    def extra_schema(self) -> Optional[Dict[str, Any]]:
-        return None
-    
-    @property
-    def schema(self) -> Any:
-        """
-        用于获取页面配置
-        
-        Returns:
-            页面配置
-        """
-        if hasattr(self, "_schema"):
-            return self._schema
-        return None
-    
-    @schema.setter
-    def schema(self, value: Any) -> None:
-        """
-        用于设置页面配置
-        
-        Args:
-            value: 页面配置
-        """
-        self._schema = value
 
     def _walk_children(self, obj: Any, exclude_none: bool = True) -> Any:
 

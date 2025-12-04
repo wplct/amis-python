@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 from django.urls import path
-from ninja import NinjaAPI
+from ninja.main import NinjaAPI
 from amis_python.builder.app import AppBuilder
 from amis_python.builder.page import PageBuilder
 

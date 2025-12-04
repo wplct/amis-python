@@ -94,13 +94,18 @@ class AppBuilder(BaseBuilder):
         default_factory=list,
         description="应用的页面结构，顶层只允许放置分组"
     )
-    
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # 添加默认没有名字的分组
+        self.pages.append(AppPageGroupBuilder(label="", children=[]))
+
     def register_page(
-        self,
-        path: str,
-        page: PageBuilder,
-        group: Union[AppPageGroupBuilder, str],
-        label: Optional[str] = None
+            self,
+            label: str,
+            path: str,
+            page: Optional[PageBuilder] = None,
+            group_label: Optional[str] = None
     ) -> AppPageBuilder:
         """
         注册页面，需要指定分组
@@ -108,52 +113,30 @@ class AppBuilder(BaseBuilder):
         Args:
             path: 页面路径，如 "/home" 或 "/users/list"
             page: 页面实例
-            group: 分组实例或分组标题
             label: 页面在导航菜单中显示的名称
-            
+            group_label: 分组标题，如果未指定，则使用空组
         Returns:
             注册的 AppPageBuilder 实例
         """
-        # 找到指定的分组
-        target_group = None
-        if isinstance(group, AppPageGroupBuilder):
-            # 如果是分组实例，直接使用
-            target_group = group
-        else:
-            # 如果是分组标题，查找对应的分组
-            for g in self.pages:
-                if g.label == group:
-                    target_group = g
-                    break
-        
-        # 验证分组是否存在
-        if not target_group:
-            raise ValueError(f"Group '{group}' not found. Please register the group first.")
-        
-        # 创建页面实例
-        app_page = AppPageBuilder(
-            label=label or path.split("/")[-1],
-            url=path,
-            schema=page
-        )
-        
+
         # 将页面添加到指定分组
-        target_group.children.append(app_page)
-        
+        group = self.get_group(group_label) or self.get_group("")
+        app_page = group.register_page(label, path)
+        if page:
+            app_page.schema = page
         return app_page
-    
+
     def register_page_group(
-        self,
-        label: str,
-        icon: Optional[str] = None
+            self,
+            label: str,
+            icon: Optional[str] = None,
+            class_name: Optional[str] = None
     ) -> AppPageGroupBuilder:
         """
         注册页面分组
-        
-        Args:
-            label: 分组在导航菜单中显示的标题
-            icon: 分组图标
-            
+        :param label:
+        :param icon:
+        :param class_name:
         Returns:
             注册的 AppPageGroupBuilder 实例
         """
@@ -161,13 +144,26 @@ class AppBuilder(BaseBuilder):
         for group in self.pages:
             if group.label == label:
                 raise ValueError(f"Group '{label}' already exists.")
-        
         # 创建分组实例
-        new_group = AppPageGroupBuilder(label=label, icon=icon, children=[])
+        new_group = AppPageGroupBuilder(label=label, icon=icon, class_name=class_name, children=[])
         self.pages.append(new_group)
-        
         return new_group
-    
+
+    def get_group(self, label: str) -> Optional[AppPageGroupBuilder]:
+        """
+        根据分组标题获取已注册的分组
+
+        Args:
+            label: 分组标题
+
+        Returns:
+            找到的 AppPageGroupBuilder 实例，未找到则返回 None
+        """
+        for group in self.pages:
+            if group.label == label:
+                return group
+        return None
+
     def get_page(self, path: str) -> Optional[PageBuilder]:
         """
         根据路径获取已注册的页面
@@ -190,5 +186,5 @@ class AppBuilder(BaseBuilder):
                     page = child.get_page(path)
                     if page:
                         return page
-        
+
         return None

@@ -2,3 +2,4 @@
 from .builder import *
 from .views import *
 from .views import get_default_app
+from .registry import register_default_app

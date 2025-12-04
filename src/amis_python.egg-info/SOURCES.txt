@@ -1,7 +1,8 @@
+README.md
 pyproject.toml
 src/amis_python/__init__.py
 src/amis_python/apps.py
-src/amis_python/ninja.py
+src/amis_python/ninja_api.py
 src/amis_python/urls.py
 src/amis_python/views.py
 src/amis_python.egg-info/PKG-INFO
@@ -11,13 +12,13 @@ src/amis_python.egg-info/requires.txt
 src/amis_python.egg-info/top_level.txt
 src/amis_python/builder/__init__.py
 src/amis_python/builder/api.py
-src/amis_python/builder/app.py
 src/amis_python/builder/base.py
 src/amis_python/builder/page.py
 src/amis_python/builder/app/__init__.py
 src/amis_python/builder/app/app.py
 src/amis_python/builder/app/group.py
 src/amis_python/builder/app/page.py
+src/amis_python/tests/__init__.py
 tests/test_app.py
 tests/test_builder.py
 tests/test_page_registration.py
