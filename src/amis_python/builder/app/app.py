@@ -167,3 +167,4 @@ class AppBuilder(BaseBuilder):
         # 暂时只支持默认分组
         group = self.get_group()
         return group.get_page(path)
+AppBuilder.model_rebuild()

@@ -1,10 +1,11 @@
 from __future__ import annotations
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Literal
 from pydantic import BaseModel, Field
 
 # 导入现有工具和配置
 from .utils import camelize
+from .. import BaseBuilder
 
 
 class AmisEvent(str, Enum):
@@ -33,11 +34,13 @@ class AmisEvent(str, Enum):
     mouseleave = "mouseleave"
 
 
-class EventAction(BaseModel):
+class EventAction(BaseBuilder):
     """
     事件动作配置
     参考文档：https://aisuda.bce.baidu.com/amis/zh-CN/docs/concepts/event-action
     """
+    type:Literal["event"] = "event"
+
     actions: List[Any] = Field(..., description="事件对应的响应动作集合")
     
     model_config = {

@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 from ..base import BaseBuilder
 from ..page import PageBuilder
+from ..api import AmisApiObject
 
 
 class AppPageBuilder(BaseBuilder):
@@ -64,3 +65,5 @@ class AppPageBuilder(BaseBuilder):
 
     def set_page_schema(self, schema: PageBuilder):
         self.lazy_schema = schema
+
+AppPageBuilder.model_rebuild()

@@ -13,24 +13,24 @@ Pydantic 基础构造器模块，为所有 amis 节点提供统一的序列化�
 
 from abc import ABC
 from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Field
-from .event import EventAction
+from pydantic import BaseModel, Field, ConfigDict
+
 from .utils import camelize
-# from .. import ActionBuilder, AmisEvent
 
 
 class BaseBuilder(BaseModel, ABC):
-    model_config = {
-        "validate_default": True,
-        "populate_by_name": True,        # 允许用原始字段名反序列化
-        "alias_generator": camelize,     # 👈 关键：自动生成驼峰别名
-    }
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        validate_default=True,
+        populate_by_name=True,
+        alias_generator=camelize,
+    )
 
     # type 由子类以 Literal 字段形式提供，确保是 Pydantic 字段
     type: str
     
     # 事件动作配置
-    on_event: Optional[Dict[str, EventAction]] = Field(None, description="事件动作配置")
+    on_event: Optional[Dict[str, Any]] = Field(None, description="事件动作配置")
     
     def add_action(
         self, 
@@ -83,59 +83,53 @@ class BaseBuilder(BaseModel, ABC):
 
     def to_schema(
             self,
-            *, 
+            *,
             by_alias: bool = True,
             exclude_none: bool = True,
             **dump_kwargs: Any,
     ) -> Dict[str, Any]:
-        # 1. 使用 model_dump 获取所有字段，
-        #    并让它进行默认的字典序列化
-        raw = self.model_dump(exclude_none=exclude_none, by_alias=by_alias, **dump_kwargs)
-        # 3. 递归展开所有嵌套的 BaseBuilder（此时 raw 中包含 BaseBuilder 实例）
-        return self._walk_children(raw, exclude_none=exclude_none)
+        result = {}
+        for field_name, field_info in self.model_fields.items():
+            # 获取实际属性值（可能是 BaseBuilder 实例）
+            value = getattr(self, field_name)
 
-    def _walk_children(self, obj: Any, exclude_none: bool = True) -> Any:
+            # 处理别名
+            key = camelize(field_name) if by_alias else field_name
 
-        # 1. 处理 BaseBuilder 实例
-        if isinstance(obj, BaseBuilder):
-            # 递归调用 to_schema，并传递 exclude_none 标志
-            result = obj.to_schema(exclude_none=exclude_none)
-            # 如果 to_schema 返回的是 None (理论上不应发生，但作为 BaseBuilder 的返回值，保留检查)
-            if exclude_none and result is None:
-                return None
-            return result
+            # 排除 None
+            if exclude_none and value is None:
+                continue
 
-        # 2. 处理字典
-        elif isinstance(obj, dict):
-            result = {}
-            for k, v in obj.items():
-                # 递归处理子值
-                child = self._walk_children(v, exclude_none=exclude_none)
+            # 如果是 BaseBuilder 且要求序列化，则调用 to_schema
+            if  isinstance(value, BaseBuilder):
+                value = value.to_schema(
+                    by_alias=by_alias,
+                    exclude_none=exclude_none,
+                )
 
-                # 如果 exclude_none 为 True 且子值是 None，则跳过此键值对
-                if exclude_none and child is None:
-                    continue
 
-                result[k] = child
-            return result
+            # 处理list
+            if isinstance(value, list):
+                value = [
+                    v.to_schema(
+                        by_alias=by_alias,
+                        exclude_none=exclude_none,
+                    )
+                    if isinstance(v, BaseBuilder)
+                    else v
+                    for v in value
+                ]
+            # 处理dict
+            elif isinstance(value, dict):
+                value = {
+                    k: v.to_schema(
+                        by_alias=by_alias,
+                        exclude_none=exclude_none,
+                    )
+                    if isinstance(v, BaseBuilder)
+                    else v
+                    for k, v in value.items()
+                }
+            result[key] = value
+        return result
 
-        # 3. 处理列表/元组
-        elif isinstance(obj, (list, tuple)):
-            result = []
-            for item in obj:
-                # 递归处理列表项
-                child = self._walk_children(item, exclude_none=exclude_none)
-
-                # 如果 exclude_none 为 True 且列表项是 None，则跳过此项
-                if exclude_none and child is None:
-                    continue
-
-                result.append(child)
-            return result
-
-        # 4. 处理 None 值 (只在最深层出现 None 时处理)
-        if exclude_none and obj is None:
-            return None
-
-        # 5. 返回其他基本类型的值
-        return obj

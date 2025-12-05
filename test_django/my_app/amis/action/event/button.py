@@ -1,7 +1,17 @@
-from amis_python import PageBuilder, ButtonBuilder, AmisEvent, DialogActionBuilder, AjaxActionBuilder, ToastActionBuilder
-from amis_python import ButtonGroupBuilder, ButtonToolbarBuilder, DropdownButtonBuilder, ButtonGroupSelectBuilder
-from amis_python import ActionContainerBuilder, TplBuilder, FormBuilder, InputTextBuilder, ColorBuilder
-from amis_python import register_page
+
+from amis_python import register_page, PageBuilder
+from amis_python.builder.action import ToastActionBuilder
+from amis_python.builder.action_container import ActionContainerBuilder
+from amis_python.builder.button import ButtonBuilder
+from amis_python.builder.button_group import ButtonGroupBuilder
+from amis_python.builder.button_group_select import ButtonGroupSelectBuilder
+from amis_python.builder.button_toolbar import ButtonToolbarBuilder
+from amis_python.builder.color import ColorBuilder
+from amis_python.builder.dropdown_button import DropdownButtonBuilder
+from amis_python.builder.event import AmisEvent
+from amis_python.builder.form import FormBuilder
+from amis_python.builder.input import InputTextBuilder
+from amis_python.builder.tpl import TplBuilder
 
 register_page("按钮类组件事件", "/action/event/button", PageBuilder(
     title="按钮类组件事件",

@@ -32,7 +32,7 @@ class PageBuilder(BaseBuilder):
     toolbar: Optional[Union[str, List[Any]]] = Field(None, description="工具栏区域")
     
     # === API 配置 ===
-    init_api: Optional[Union[str, AmisApiObject]] = Field(None, description="页面初始化请求的接口")
+    init_api: Optional[Union[str, "AmisApiObject"]] = Field(None, description="页面初始化请求的接口")
     init_fetch: bool = Field(True, description="是否起始拉取 initApi")
     init_fetch_on: Optional[str] = Field(None, description="是否起始拉取 initApi, 通过表达式配置")
     
@@ -63,4 +63,4 @@ class PageBuilder(BaseBuilder):
     custom_style: Optional[str] = Field(None, description="自定义 CSS 样式")
 
 
-
+PageBuilder.model_rebuild()

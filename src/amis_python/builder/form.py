@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Optional, Union, Any
+from typing import List, Optional, Union, Any, Literal
 from pydantic import Field
 
 from .base import BaseBuilder
@@ -23,10 +23,10 @@ class FormBuilder(BaseBuilder):
             ]
         )
     """
-    type: str = "form"
+    type: Literal["form"] = "form"
     
     # 表单提交API
-    api: Optional[str] = Field(None, description="表单提交API")
+    api: Optional[Any] = Field(None, description="表单提交API")
     
     # 表单内容
     body: List[Any] = Field(..., description="表单内容")
