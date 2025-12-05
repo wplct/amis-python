@@ -21,45 +21,37 @@ class AmisApiObject(BaseBuilder):
     adaptor: Optional[str] = None  # 响应数据适配器（用于转换返回结果）
     timeout: Optional[int] = None  # 请求超时时间（毫秒）
 
-    def __init__(self, url: str, **kwargs):
-        # 设置必填字段
-        self.url = url
-        
-        # 设置可选字段
-        self.method = kwargs.pop("method", "get")
-        self.data = kwargs.pop("data", None)
-        self.headers = kwargs.pop("headers", None)
-        self.request_adaptor = kwargs.pop("request_adaptor", None)
-        self.adaptor = kwargs.pop("adaptor", None)
-        self.timeout = kwargs.pop("timeout", None)
-        
-        # 设置额外字段
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        
-        super().__init__(**kwargs)
 
 class LazyAmisApiObject(BaseBuilder):
     """
     AMIS 中结构化的 API 配置对象，用于懒加载。
     """
     type: Literal["lazy_api_config"] = "lazy_api_config"
-    api_view: Optional[Callable] = None
+    _api_view: Optional[Callable] = None
+    _api_obj: Optional[AmisApiObject] = None
+    _kwargs: Optional[Dict[str, Any]] = None
 
-    def __init__(self, api_view,**kwargs):
+    def __init__(self, api_view,data=None,headers=None,request_adaptor=None,adaptor=None,timeout=None ,**kwargs):
         super().__init__(**kwargs)
         self.api_view = api_view
+        self._kwargs = {
+            "data": data,
+            "headers": headers,
+            "request_adaptor": request_adaptor,
+            "adaptor": adaptor,
+            "timeout": timeout,
+        }
 
-    def to_schema(
-            self,
-            *,
-            by_alias: bool = True,
-            exclude_none: bool = True,
-            **dump_kwargs: Any,
-    ) -> Dict[str, Any]:
+    def to_schema(self, by_alias=True, exclude_none=True) -> Dict[str, Any]:
         print(reverse("api:save_form"))
-        return {}
+        if self._api_obj is None:
+            self._api_obj = AmisApiObject(
+                url=reverse("api:save_form"),
+                method="post",
+                **self._kwargs
+            )
+        return self._api_obj.to_schema(by_alias, exclude_none)
 
 
-def api(api_view):
+def api(api_view) -> LazyAmisApiObject:
     return LazyAmisApiObject(api_view=api_view)

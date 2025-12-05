@@ -48,4 +48,4 @@ page = PageBuilder(
 )
 
 # 注册页面
-register_page("初始化出错", "/index/error", page)
+print(register_page("初始化出错", "/index/error", page))

@@ -16,6 +16,7 @@ class ToastActionBuilder(ActionBuilder):
         )
     """
     action_type: Literal["toast"] = "toast"
+    args: Optional[dict] = None
     
     def __init__(self, **data):
         # 将所有参数包装到args字段中

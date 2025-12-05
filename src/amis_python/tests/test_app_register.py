@@ -34,6 +34,8 @@ class TestAppRegister(TestCase):
     # 获取默认app
     def test_get_default_app(self):
         app = get_default_app()
+        # print(app.brand_name)
+        # print(app.to_schema())
         self.assertEqual(app.to_schema()["brandName"], "amis-python")
 
     # 使用全局方法注册页面

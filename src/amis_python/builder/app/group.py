@@ -55,9 +55,7 @@ class AppPageGroupBuilder(BaseBuilder):
             if path.startswith(child.path):
                 return child.register_page(label,path)
 
-        child = AppPageBuilder(path='/' + paths[0], url='/' + paths[0], children=[])
-        self.children.append(child)
-        return child.register_page(label,path)
+        raise ValueError(f"未找到页面：{path}")
 
     def get_page(self, path: str) -> Optional[PageBuilder]:
         """

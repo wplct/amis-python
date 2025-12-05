@@ -9,6 +9,7 @@ description = "Python-side schema builder for amis JSON"
 readme = "README.md"
 requires-python = ">=3.8" # 修改为 Python 3.8+
 dependencies = [
+    "django-extensions>=3.2.3",
     "django-ninja>=1.5.0",
     "mypy>=1.14.1",
     "pydantic>=1.6", # 修改为兼容 pydantic 1.6+ 和 2.0+

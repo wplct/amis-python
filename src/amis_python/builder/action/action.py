@@ -21,23 +21,4 @@ class ActionBuilder(BaseBuilder):
     confirm_text: Optional[str] = None  # 确认提示文本
     close: Optional[bool] = None  # 是否关闭当前组件
     reload: Optional[Union[bool, str]] = None  # 是否刷新指定组件
-    
-    def __init__(self, action_type: str, **kwargs):
-        # 处理 actionType 和 type 的兼容
-        if "type" in kwargs and "action_type" not in kwargs:
-            kwargs["action_type"] = kwargs["type"]
-        
-        # 设置必填字段
-        self.action_type = action_type
-        
-        # 设置可选字段
-        self.label = kwargs.pop("label", None)
-        self.confirm_text = kwargs.pop("confirm_text", None)
-        self.close = kwargs.pop("close", None)
-        self.reload = kwargs.pop("reload", None)
-        
-        # 设置额外字段
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        
-        super().__init__(**kwargs)
+

@@ -10,41 +10,37 @@ Pydantic 基础构造器模块，为所有 amis 节点提供统一的序列化�
 注意：type 字段不再通过抽象属性强制，而是作为 Pydantic 模型字段，
       由子类使用 Literal 显式定义，确保序列化能正确进行。
 """
-
+import types
 from abc import ABC
-from typing import Any, Dict, List, Optional, Union
-
+from typing import Any, Dict, List, Optional, Union, get_origin, get_args
 from .utils import camelize
 
 
 class BaseBuilder:
     type: str  # 类变量 or 实例变量
+    on_event: Optional[Dict[str, Any]] = None  # 事件动作配置
 
     def __init__(self, **kwargs):
-        # 初始化所有类属性为默认值
-        for attr_name in dir(self):
-            if not attr_name.startswith('_'):
-                attr_value = getattr(self.__class__, attr_name, None)
-                # 只处理非方法、非私有属性
-                if not callable(attr_value) and not isinstance(attr_value, property):
-                    setattr(self, attr_name, attr_value)
-        
+
         # 处理列表类型的属性，确保它们被正确初始化
         for attr_name, attr_type in self.__annotations__.items():
             if attr_name not in kwargs and hasattr(self, attr_name):
                 attr_value = getattr(self, attr_name)
-                # 如果是列表类型且值为 None，初始化为空列表
-                if attr_type.__origin__ is list and attr_value is None:
+                if attr_value is None:
+                    continue
+                if isinstance(attr_value, list) and not attr_value:
                     setattr(self, attr_name, [])
-        
+                if isinstance(attr_value, dict) and not attr_value:
+                    setattr(self, attr_name, {})
+                if isinstance(attr_value, tuple) and not attr_value:
+                    setattr(self, attr_name, ())
+
         # 使用传入的 kwargs 更新属性
         for k, v in kwargs.items():
             setattr(self, k, v)
-        
+
         # 确保 on_event 被正确初始化
         self.on_event = getattr(self, 'on_event', None)
-
-    on_event: Optional[Dict[str, Any]] = None  # 事件动作配置
 
     def add_action(
             self,
@@ -97,7 +93,13 @@ class BaseBuilder:
 
     def to_schema(self, by_alias=True, exclude_none=True):
         result = {}
-        for key, value in self.__dict__.items():
+        # 遍历所有注解的字段（包括类属性）
+        for key in self.__class__.__annotations__:
+            if key.startswith('_'):
+                continue
+            if not hasattr(self, key):
+                continue
+            value = getattr(self, key)
             if exclude_none and value is None:
                 continue
             k = camelize(key) if by_alias else key

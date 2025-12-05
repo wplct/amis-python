@@ -47,38 +47,10 @@ class AppBuilder(BaseBuilder):
     locale: Optional[str] = None  # 语言区域设置，如 'zh-CN'、'en-US'（需配合 localeProvider 使用）
 
     # === 页面结构 ===
-    pages: List[AppPageGroupBuilder] = None  # 应用的页面结构，顶层只允许放置分组
+    pages: List[AppPageGroupBuilder] = []  # 应用的页面结构，顶层只允许放置分组
 
     def __init__(self, **kwargs):
-        # 初始化列表
-        self.pages = []
-        
-        # 设置可选字段
-        self.api = kwargs.pop("api", None)
-        self.brand_name = kwargs.pop("brand_name", "amis-python")
-        self.logo = kwargs.pop("logo", None)
-        self.class_name = kwargs.pop("class_name", None)
-        self.affix_header = kwargs.pop("affix_header", True)
-        self.aside_fixed = kwargs.pop("aside_fixed", True)
-        self.aside_folded = kwargs.pop("aside_folded", False)
-        self.header = kwargs.pop("header", None)
-        self.toolbar = kwargs.pop("toolbar", None)
-        self.aside_before = kwargs.pop("aside_before", None)
-        self.aside_after = kwargs.pop("aside_after", None)
-        self.footer = kwargs.pop("footer", None)
-        self.css_vars = kwargs.pop("css_vars", None)
-        self.locale = kwargs.pop("locale", None)
-        
-        # 处理 pages 参数
-        if "pages" in kwargs:
-            self.pages.extend(kwargs.pop("pages"))
-        
-        # 设置额外字段
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        
         super().__init__(**kwargs)
-        
         # 添加默认没有名字的分组
         self.pages.append(AppPageGroupBuilder(label="", children=[]))
 
@@ -106,7 +78,6 @@ class AppBuilder(BaseBuilder):
         app_page = group.register_page(label, path)
         if page:
             app_page.set_page_schema(page)
-            print(app_page.schema_api)
             app_page.schema_api = f"/amis/page{path}"
         return app_page
 

@@ -26,43 +26,14 @@ class AppPageBuilder(BaseBuilder):
     children: Optional[List["AppPageBuilder"]] = []  # 分组内包含的页面或嵌套分组
     # ---- 辅助字段 ----
     path: Optional[str] = None  # 页面路径,对于Amis没用
-    lazy_schema: Optional[PageBuilder] = None  # 懒加载页面
-    
-    def __init__(self, **kwargs):
-        # 初始化列表
-        self.children = []
-        
-        # 设置可选字段
-        self.label = kwargs.pop("label", None)
-        self.url = kwargs.pop("url", None)
-        self.schema = kwargs.pop("schema", None)
-        self.icon = kwargs.pop("icon", None)
-        self.schema_api = kwargs.pop("schema_api", None)
-        self.link = kwargs.pop("link", None)
-        self.redirect = kwargs.pop("redirect", None)
-        self.rewrite = kwargs.pop("rewrite", None)
-        self.is_default_page = kwargs.pop("is_default_page", None)
-        self.visible = kwargs.pop("visible", None)
-        self.class_name = kwargs.pop("class_name", None)
-        self.path = kwargs.pop("path", None)
-        self.lazy_schema = kwargs.pop("lazy_schema", None)
-        
-        # 处理 children 参数
-        if "children" in kwargs:
-            self.children.extend(kwargs.pop("children"))
-        
-        # 设置额外字段
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        
-        super().__init__(**kwargs)
+    _lazy_schema: Optional[PageBuilder] = None  # 懒加载页面
 
     def get_page(self, path: str) -> Optional[PageBuilder]:
         """
         根据路径获取已注册的页面
         """
         if self.path == path:
-            return self.lazy_schema
+            return self._lazy_schema
         elif self.children:
             for child in self.children:
                 if path.startswith(child.path):
@@ -79,6 +50,8 @@ class AppPageBuilder(BaseBuilder):
 
         paths = [p for p in path.split('/') if p]
         self_paths = [p for p in self.path.split('/') if p]
+        if len(paths) == len(self_paths):
+            raise ValueError(f"path 注册错误 {path} {self.path}")
         if len(paths) - len(self_paths) == 1:
             app_page = AppPageBuilder(label=label, path=path, url=path)
             self.children.append(app_page)
@@ -92,5 +65,5 @@ class AppPageBuilder(BaseBuilder):
             raise ValueError(f"path 注册错误 {path} {self.path}")
 
     def set_page_schema(self, schema: PageBuilder):
-        self.lazy_schema = schema
+        self._lazy_schema = schema
 
