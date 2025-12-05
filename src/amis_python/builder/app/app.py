@@ -1,6 +1,5 @@
 # from __future__ import annotations
 from typing import Any, Dict, List, Union, Optional, Literal
-from pydantic import BaseModel, Field
 
 from ..api import AmisApiObject
 from ..base import BaseBuilder
@@ -26,77 +25,60 @@ class AppBuilder(BaseBuilder):
     type: Literal["app"] = "app"
 
     # === 基础信息 ===
-    api: Optional[Union[str, AmisApiObject]] = Field(
-        None,
-        description="动态拉取应用配置的接口。可以是 URL 字符串，或结构化 API 对象（支持 method/data/headers 等）"
-    )
-    brand_name: str = Field(
-        "amis-python",
-        description="应用左上角的品牌名称"
-    )
-    logo: Optional[str] = Field(
-        None,
-        description="品牌 Logo 图片 URL，显示在品牌名左侧"
-    )
-    class_name: Optional[str] = Field(
-        None,
-        description="CSS 类名"
-    )
+    api: Optional[Union[str, AmisApiObject]] = None  # 动态拉取应用配置的接口。可以是 URL 字符串，或结构化 API 对象（支持 method/data/headers 等）
+    brand_name: str = "amis-python"  # 应用左上角的品牌名称
+    logo: Optional[str] = None  # 品牌 Logo 图片 URL，显示在品牌名左侧
+    class_name: Optional[str] = None  # CSS 类名
 
     # === 布局控制 ===
-    affix_header: bool = Field(
-        True,
-        description="是否固定顶部栏（默认 true）"
-    )
-    aside_fixed: bool = Field(
-        True,
-        description="是否固定侧边栏（默认 true）"
-    )
-    aside_folded: bool = Field(
-        False,
-        description="侧边栏是否默认折叠（默认 false）"
-    )
+    affix_header: bool = True  # 是否固定顶部栏（默认 true）
+    aside_fixed: bool = True  # 是否固定侧边栏（默认 true）
+    aside_folded: bool = False  # 侧边栏是否默认折叠（默认 false）
 
     # === 自定义区域 ===
-    header: Optional[Union[str, dict]] = Field(
-        None,
-        description="顶部区域内容（支持 HTML 或 amis schema）"
-    )
-    toolbar: Optional[Union[str, dict]] = Field(
-        None,
-        description="顶部右侧工具栏内容（常用于放置通知、用户头像等）"
-    )
-    aside_before: Optional[Union[str, dict]] = Field(
-        None,
-        description="页面菜单上前面区域"
-    )
-    aside_after: Optional[Union[str, dict]] = Field(
-        None,
-        description="页面菜单下前面区域"
-    )
-    footer: Optional[Union[str, dict]] = Field(
-        None,
-        description="底部区域内容"
-    )
+    header: Optional[Union[str, dict]] = None  # 顶部区域内容（支持 HTML 或 amis schema）
+    toolbar: Optional[Union[str, dict]] = None  # 顶部右侧工具栏内容（常用于放置通知、用户头像等）
+    aside_before: Optional[Union[str, dict]] = None  # 页面菜单上前面区域
+    aside_after: Optional[Union[str, dict]] = None  # 页面菜单下前面区域
+    footer: Optional[Union[str, dict]] = None  # 底部区域内容
 
     # === 主题与国际化 ===
-    css_vars: Optional[Dict[str, str]] = Field(
-        None,
-        description="自定义 CSS 变量，用于主题定制（如 {'--primary': '#1890ff'}）"
-    )
-    locale: Optional[str] = Field(
-        None,
-        description="语言区域设置，如 'zh-CN'、'en-US'（需配合 localeProvider 使用）"
-    )
+    css_vars: Optional[Dict[str, str]] = None  # 自定义 CSS 变量，用于主题定制（如 {'--primary': '#1890ff'}）
+    locale: Optional[str] = None  # 语言区域设置，如 'zh-CN'、'en-US'（需配合 localeProvider 使用）
 
     # === 页面结构 ===
-    pages: List[AppPageGroupBuilder] = Field(
-        default_factory=list,
-        description="应用的页面结构，顶层只允许放置分组"
-    )
+    pages: List[AppPageGroupBuilder] = None  # 应用的页面结构，顶层只允许放置分组
 
     def __init__(self, **kwargs):
+        # 初始化列表
+        self.pages = []
+        
+        # 设置可选字段
+        self.api = kwargs.pop("api", None)
+        self.brand_name = kwargs.pop("brand_name", "amis-python")
+        self.logo = kwargs.pop("logo", None)
+        self.class_name = kwargs.pop("class_name", None)
+        self.affix_header = kwargs.pop("affix_header", True)
+        self.aside_fixed = kwargs.pop("aside_fixed", True)
+        self.aside_folded = kwargs.pop("aside_folded", False)
+        self.header = kwargs.pop("header", None)
+        self.toolbar = kwargs.pop("toolbar", None)
+        self.aside_before = kwargs.pop("aside_before", None)
+        self.aside_after = kwargs.pop("aside_after", None)
+        self.footer = kwargs.pop("footer", None)
+        self.css_vars = kwargs.pop("css_vars", None)
+        self.locale = kwargs.pop("locale", None)
+        
+        # 处理 pages 参数
+        if "pages" in kwargs:
+            self.pages.extend(kwargs.pop("pages"))
+        
+        # 设置额外字段
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        
         super().__init__(**kwargs)
+        
         # 添加默认没有名字的分组
         self.pages.append(AppPageGroupBuilder(label="", children=[]))
 
@@ -167,4 +149,3 @@ class AppBuilder(BaseBuilder):
         # 暂时只支持默认分组
         group = self.get_group()
         return group.get_page(path)
-AppBuilder.model_rebuild()

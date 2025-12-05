@@ -1,6 +1,5 @@
 # from __future__ import annotations
 from typing import Any, Dict, List, Union, Optional, Literal
-from pydantic import BaseModel, Field
 
 from ..base import BaseBuilder
 from ..page import PageBuilder
@@ -13,21 +12,50 @@ class AppPageBuilder(BaseBuilder):
     对应 AMIS pages 配置中的单个页面项（非分组）。
     """
     type: Literal["appPage"] = "appPage"
-    label: Optional[str] = Field(None, description="页面在导航菜单中显示的名称")
-    url: Optional[str] = Field(None, description="页面路由路径")
-    schema: Optional[PageBuilder] = Field(None, description="页面配置")
-    icon: Optional[str] = Field(None, description="菜单图标，比如：fa fa-file")
-    schema_api: Optional[Union[str, dict]] = Field(None, description="如果想通过接口拉取，请配置。返回路径为 json>data")
-    link: Optional[str] = Field(None, description="如果想配置个外部链接菜单，只需要配置 link 即可")
-    redirect: Optional[str] = Field(None, description="跳转，当命中当前页面时，跳转到目标页面")
-    rewrite: Optional[str] = Field(None, description="改成渲染其他路径的页面，这个方式页面地址不会发生修改")
-    is_default_page: Optional[bool] = Field(None, description="当你需要自定义 404 页面的时候有用")
-    visible: Optional[bool] = Field(None, description="有些页面可能不想出现在菜单中，可以配置成 false")
-    class_name: Optional[str] = Field(None, description="菜单类名")
-    children: Optional[List["AppPageBuilder"]] = Field([], description="分组内包含的页面或嵌套分组")
+    label: Optional[str] = None  # 页面在导航菜单中显示的名称
+    url: Optional[str] = None  # 页面路由路径
+    schema: Optional[PageBuilder] = None  # 页面配置
+    icon: Optional[str] = None  # 菜单图标，比如：fa fa-file
+    schema_api: Optional[Union[str, dict]] = None  # 如果想通过接口拉取，请配置。返回路径为 json>data
+    link: Optional[str] = None  # 如果想配置个外部链接菜单，只需要配置 link 即可
+    redirect: Optional[str] = None  # 跳转，当命中当前页面时，跳转到目标页面
+    rewrite: Optional[str] = None  # 改成渲染其他路径的页面，这个方式页面地址不会发生修改
+    is_default_page: Optional[bool] = None  # 当你需要自定义 404 页面的时候有用
+    visible: Optional[bool] = None  # 有些页面可能不想出现在菜单中，可以配置成 false
+    class_name: Optional[str] = None  # 菜单类名
+    children: Optional[List["AppPageBuilder"]] = []  # 分组内包含的页面或嵌套分组
     # ---- 辅助字段 ----
-    path: Optional[str] = Field(None, description="页面路径,对于Amis没用")
-    lazy_schema: Optional[PageBuilder] = Field(None, description="懒加载页面", exclude=True)
+    path: Optional[str] = None  # 页面路径,对于Amis没用
+    lazy_schema: Optional[PageBuilder] = None  # 懒加载页面
+    
+    def __init__(self, **kwargs):
+        # 初始化列表
+        self.children = []
+        
+        # 设置可选字段
+        self.label = kwargs.pop("label", None)
+        self.url = kwargs.pop("url", None)
+        self.schema = kwargs.pop("schema", None)
+        self.icon = kwargs.pop("icon", None)
+        self.schema_api = kwargs.pop("schema_api", None)
+        self.link = kwargs.pop("link", None)
+        self.redirect = kwargs.pop("redirect", None)
+        self.rewrite = kwargs.pop("rewrite", None)
+        self.is_default_page = kwargs.pop("is_default_page", None)
+        self.visible = kwargs.pop("visible", None)
+        self.class_name = kwargs.pop("class_name", None)
+        self.path = kwargs.pop("path", None)
+        self.lazy_schema = kwargs.pop("lazy_schema", None)
+        
+        # 处理 children 参数
+        if "children" in kwargs:
+            self.children.extend(kwargs.pop("children"))
+        
+        # 设置额外字段
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        
+        super().__init__(**kwargs)
 
     def get_page(self, path: str) -> Optional[PageBuilder]:
         """
@@ -66,4 +94,3 @@ class AppPageBuilder(BaseBuilder):
     def set_page_schema(self, schema: PageBuilder):
         self.lazy_schema = schema
 
-AppPageBuilder.model_rebuild()

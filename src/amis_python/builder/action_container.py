@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import List, Optional, Union
-from pydantic import Field
 
 from .base import BaseBuilder
 
@@ -20,8 +19,8 @@ class ActionContainerBuilder(BaseBuilder):
     type: str = "action"
     
     # 容器内容
-    body: List[Union[BaseBuilder, dict]] = Field(..., description="容器内容")
+    body: List[Union[BaseBuilder, dict]]  # 容器内容
     
     # 其他属性
-    class_name: Optional[str] = Field(None, description="指定添加 action 类名")
-    disabled: Optional[bool] = Field(False, description="是否禁用")
+    class_name: Optional[str] = None  # 指定添加 action 类名
+    disabled: Optional[bool] = False  # 是否禁用

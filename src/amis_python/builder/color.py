@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import Optional, Literal
-from pydantic import Field
 
 from .base import BaseBuilder
 
@@ -18,11 +17,11 @@ class ColorBuilder(BaseBuilder):
     type: Literal["color"] = "color"
     
     # 颜色值
-    value: Optional[str] = Field(None, description="颜色值")
+    value: Optional[str] = None  # 颜色值
     
     # 其他属性
-    name: Optional[str] = Field(None, description="字段名称")
-    label: Optional[str] = Field(None, description="字段标签")
-    disabled: Optional[bool] = Field(False, description="是否禁用")
-    required: Optional[bool] = Field(False, description="是否必填")
-    class_name: Optional[str] = Field(None, description="指定添加 color 类名")
+    name: Optional[str] = None  # 字段名称
+    label: Optional[str] = None  # 字段标签
+    disabled: Optional[bool] = False  # 是否禁用
+    required: Optional[bool] = False  # 是否必填
+    class_name: Optional[str] = None  # 指定添加 color 类名

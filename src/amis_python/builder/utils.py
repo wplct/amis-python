@@ -1,5 +1,4 @@
 from __future__ import annotations
-from pydantic import ConfigDict
 
 def camelize(name: str) -> str:
     """snake_case -> camelCase"""

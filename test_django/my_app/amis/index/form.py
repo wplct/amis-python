@@ -11,7 +11,7 @@ from amis_python.registry import register_page
 router = Router()
 
 
-@router.post("/save")
+@router.post("/save",operation_id="save_form")
 def save_form(request, data: Dict = Body(...)):
     """
     保存表单数据

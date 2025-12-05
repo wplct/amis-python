@@ -9,19 +9,19 @@ def init_data(request):
         "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     })
 
-@csrf_exempt
-def save_form(request):
-    """处理表单提交请求，返回成功响应"""
-    if request.method == 'POST':
-        # 处理表单数据
-        data = {
-            "status": 0,
-            "msg": "表单提交成功",
-            "data": {
-                "success": True
-            }
-        }
-        return JsonResponse(data)
-    else:
-        return JsonResponse({"status": 1, "msg": "只支持POST请求"}, status=405)
+# @csrf_exempt
+# def save_form(request):
+#     """处理表单提交请求，返回成功响应"""
+#     if request.method == 'POST':
+#         # 处理表单数据
+#         data = {
+#             "status": 0,
+#             "msg": "表单提交成功",
+#             "data": {
+#                 "success": True
+#             }
+#         }
+#         return JsonResponse(data)
+#     else:
+#         return JsonResponse({"status": 1, "msg": "只支持POST请求"}, status=405)
 

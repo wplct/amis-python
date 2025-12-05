@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import List, Optional, Union, Any, Literal
-from pydantic import Field
 
 from .base import BaseBuilder
 from .button import ButtonBuilder
@@ -26,21 +25,21 @@ class FormBuilder(BaseBuilder):
     type: Literal["form"] = "form"
     
     # 表单提交API
-    api: Optional[Any] = Field(None, description="表单提交API")
+    api: Optional[Any] = None  # 表单提交API
     
     # 表单内容
-    body: List[Any] = Field(..., description="表单内容")
+    body: List[Any] = None  # 表单内容
     
     # 表单按钮
-    actions: Optional[List[Union[ButtonBuilder, dict]]] = Field(None, description="表单按钮")
+    actions: Optional[List[Union[ButtonBuilder, dict]]] = None  # 表单按钮
     
     # 其他属性
-    debug: Optional[bool] = Field(False, description="是否开启调试模式")
-    class_name: Optional[str] = Field(None, description="指定添加 form 类名")
-    title: Optional[str] = Field(None, description="表单标题")
-    mode: Optional[str] = Field(None, description="表单模式")
+    debug: Optional[bool] = False  # 是否开启调试模式
+    class_name: Optional[str] = None  # 指定添加 form 类名
+    title: Optional[str] = None  # 表单标题
+    mode: Optional[str] = None  # 表单模式
     
     # 布局属性
-    horizontal: Optional[bool] = Field(None, description="是否水平布局")
-    label_align: Optional[str] = Field(None, description="标签对齐方式", alias="labelAlign")
-    label_width: Optional[Union[str, int]] = Field(None, description="标签宽度", alias="labelWidth")
+    horizontal: Optional[bool] = None  # 是否水平布局
+    label_align: Optional[str] = None  # 标签对齐方式
+    label_width: Optional[Union[str, int]] = None  # 标签宽度

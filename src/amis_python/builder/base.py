@@ -13,53 +13,67 @@ Pydantic 基础构造器模块，为所有 amis 节点提供统一的序列化�
 
 from abc import ABC
 from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Field, ConfigDict
 
 from .utils import camelize
 
 
-class BaseBuilder(BaseModel, ABC):
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True,
-        validate_default=True,
-        populate_by_name=True,
-        alias_generator=camelize,
-    )
+class BaseBuilder:
+    type: str  # 类变量 or 实例变量
 
-    # type 由子类以 Literal 字段形式提供，确保是 Pydantic 字段
-    type: str
-    
-    # 事件动作配置
-    on_event: Optional[Dict[str, Any]] = Field(None, description="事件动作配置")
-    
+    def __init__(self, **kwargs):
+        # 初始化所有类属性为默认值
+        for attr_name in dir(self):
+            if not attr_name.startswith('_'):
+                attr_value = getattr(self.__class__, attr_name, None)
+                # 只处理非方法、非私有属性
+                if not callable(attr_value) and not isinstance(attr_value, property):
+                    setattr(self, attr_name, attr_value)
+        
+        # 处理列表类型的属性，确保它们被正确初始化
+        for attr_name, attr_type in self.__annotations__.items():
+            if attr_name not in kwargs and hasattr(self, attr_name):
+                attr_value = getattr(self, attr_name)
+                # 如果是列表类型且值为 None，初始化为空列表
+                if attr_type.__origin__ is list and attr_value is None:
+                    setattr(self, attr_name, [])
+        
+        # 使用传入的 kwargs 更新属性
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        
+        # 确保 on_event 被正确初始化
+        self.on_event = getattr(self, 'on_event', None)
+
+    on_event: Optional[Dict[str, Any]] = None  # 事件动作配置
+
     def add_action(
-        self, 
-        event_name: Union[str, 'AmisEvent'],
-        *actions: 'ActionBuilder'
+            self,
+            event_name: Union[str, 'AmisEvent'],
+            *actions: 'ActionBuilder'
     ) -> 'BaseBuilder':
         """
         动态添加事件动作
-        
+
         Args:
             event_name: 事件名称，如 "click"、"change" 等，或 AmisEvent 枚举
             actions: 动作列表，每个动作可以是字典或 ActionBuilder 实例
-            
+
         Returns:
             self: 支持链式调用
         """
         from .event import AmisEvent
         from .action.action import ActionBuilder
-        
+
         # 初始化 on_event 字典（如果不存在）
         if self.on_event is None:
             self.on_event = {}
-        
+
         # 处理事件名称为枚举的情况
         if isinstance(event_name, AmisEvent):
             event_name_str = event_name.value
         else:
             event_name_str = event_name
-        
+
         # 处理动作列表，将 ActionBuilder 实例转换为字典
         processed_actions = []
         for action in actions:
@@ -67,69 +81,35 @@ class BaseBuilder(BaseModel, ABC):
                 processed_actions.append(action.to_schema())
             else:
                 processed_actions.append(action)
-        
+
         # 创建 EventAction 对象
         from .event import EventAction
         event_action = EventAction(actions=processed_actions)
-        
+
         # 添加到 on_event 字典
         if event_name_str in self.on_event:
             self.on_event[event_name_str].actions.extend(event_action.actions)
         else:
             self.on_event[event_name_str] = event_action
-        
+
         # 返回 self 支持链式调用
         return self
 
-    def to_schema(
-            self,
-            *,
-            by_alias: bool = True,
-            exclude_none: bool = True,
-            **dump_kwargs: Any,
-    ) -> Dict[str, Any]:
+    def to_schema(self, by_alias=True, exclude_none=True):
         result = {}
-        for field_name, field_info in self.model_fields.items():
-            # 获取实际属性值（可能是 BaseBuilder 实例）
-            value = getattr(self, field_name)
-
-            # 处理别名
-            key = camelize(field_name) if by_alias else field_name
-
-            # 排除 None
+        for key, value in self.__dict__.items():
             if exclude_none and value is None:
                 continue
-
-            # 如果是 BaseBuilder 且要求序列化，则调用 to_schema
-            if  isinstance(value, BaseBuilder):
-                value = value.to_schema(
-                    by_alias=by_alias,
-                    exclude_none=exclude_none,
-                )
-
-
-            # 处理list
-            if isinstance(value, list):
-                value = [
-                    v.to_schema(
-                        by_alias=by_alias,
-                        exclude_none=exclude_none,
-                    )
-                    if isinstance(v, BaseBuilder)
-                    else v
-                    for v in value
-                ]
-            # 处理dict
-            elif isinstance(value, dict):
-                value = {
-                    k: v.to_schema(
-                        by_alias=by_alias,
-                        exclude_none=exclude_none,
-                    )
-                    if isinstance(v, BaseBuilder)
-                    else v
-                    for k, v in value.items()
-                }
-            result[key] = value
+            k = camelize(key) if by_alias else key
+            result[k] = self._serialize_value(value, by_alias, exclude_none)
         return result
 
+    def _serialize_value(self, value, by_alias, exclude_none):
+        if isinstance(value, BaseBuilder):
+            return value.to_schema(by_alias, exclude_none)
+        elif isinstance(value, list):
+            return [self._serialize_value(v, by_alias, exclude_none) for v in value]
+        elif isinstance(value, dict):
+            return {k: self._serialize_value(v, by_alias, exclude_none) for k, v in value.items()}
+        else:
+            return value

@@ -1,6 +1,6 @@
 from typing import Literal, Optional, Dict, Any, Callable
 
-from pydantic import BaseModel, Field
+from django.urls import reverse
 
 from .base import BaseBuilder
 
@@ -12,30 +12,32 @@ class AmisApiObject(BaseBuilder):
     """
     type: Literal["api_config"] = "api_config"
 
-    url: str = Field(..., description="接口地址")
-    method: Literal["get", "post", "put", "delete", "patch"] = Field(
-        "get", description="HTTP 请求方法"
-    )
-    data: Optional[Dict[str, Any]] = Field(
-        None, description="请求体数据（通常用于 POST/PUT）"
-    )
-    headers: Optional[Dict[str, str]] = Field(
-        None, description="自定义请求头"
-    )
-    request_adaptor: Optional[str] = Field(
-        None,
-        description="请求发送前的适配器函数（前端 JS 函数名或代码字符串）"
-    )
-    adaptor: Optional[str] = Field(
-        None,
-        description="响应数据适配器（用于转换返回结果）"
-    )
-    timeout: Optional[int] = Field(
-        None, description="请求超时时间（毫秒）"
-    )
+    # 基础属性
+    url: str  # 接口地址
+    method: Literal["get", "post", "put", "delete", "patch"] = "get"  # HTTP 请求方法
+    data: Optional[Dict[str, Any]] = None  # 请求体数据（通常用于 POST/PUT）
+    headers: Optional[Dict[str, str]] = None  # 自定义请求头
+    request_adaptor: Optional[str] = None  # 请求发送前的适配器函数（前端 JS 函数名或代码字符串）
+    adaptor: Optional[str] = None  # 响应数据适配器（用于转换返回结果）
+    timeout: Optional[int] = None  # 请求超时时间（毫秒）
 
-    class Config:
-        populate_by_name = True  # 允许通过 snake_case 赋值，自动转为 camelCase
+    def __init__(self, url: str, **kwargs):
+        # 设置必填字段
+        self.url = url
+        
+        # 设置可选字段
+        self.method = kwargs.pop("method", "get")
+        self.data = kwargs.pop("data", None)
+        self.headers = kwargs.pop("headers", None)
+        self.request_adaptor = kwargs.pop("request_adaptor", None)
+        self.adaptor = kwargs.pop("adaptor", None)
+        self.timeout = kwargs.pop("timeout", None)
+        
+        # 设置额外字段
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        
+        super().__init__(**kwargs)
 
 class LazyAmisApiObject(BaseBuilder):
     """
@@ -55,8 +57,7 @@ class LazyAmisApiObject(BaseBuilder):
             exclude_none: bool = True,
             **dump_kwargs: Any,
     ) -> Dict[str, Any]:
-        print(self.api_view)
-        print(dir(self.api_view))
+        print(reverse("api:save_form"))
         return {}
 
 

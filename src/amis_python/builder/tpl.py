@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import Optional, Literal
-from pydantic import Field
 
 from .base import BaseBuilder
 
@@ -20,9 +19,9 @@ class TplBuilder(BaseBuilder):
     type: Literal["tpl"] = "tpl"
     
     # 模板内容
-    tpl: str = Field(..., description="模板内容")
+    tpl: str  # 模板内容
     
     # 其他属性
-    inline: Optional[bool] = Field(True, description="是否内联")
-    wrapper_component: Optional[str] = Field(None, description="包装组件", alias="wrapperComponent")
-    class_name: Optional[str] = Field(None, description="指定添加 tpl 类名")
+    inline: Optional[bool] = True  # 是否内联
+    wrapper_component: Optional[str] = None  # 包装组件
+    class_name: Optional[str] = None  # 指定添加 tpl 类名

@@ -1,7 +1,6 @@
 from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional, Literal
-from pydantic import BaseModel, Field
 
 # 导入现有工具和配置
 from .utils import camelize
@@ -41,10 +40,8 @@ class EventAction(BaseBuilder):
     """
     type:Literal["event"] = "event"
 
-    actions: List[Any] = Field(..., description="事件对应的响应动作集合")
-    
-    model_config = {
-        "validate_default": True,
-        "populate_by_name": True,
-        "alias_generator": camelize,
-    }
+    actions: List[Any]  # 事件对应的响应动作集合
+
+    def __init__(self, actions: List[Any], **kwargs):
+        self.actions = actions
+        super().__init__(**kwargs)

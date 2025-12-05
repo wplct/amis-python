@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import List, Optional, Union, Literal
-from pydantic import Field
 
 from .base import BaseBuilder
 from .button import ButtonBuilder
@@ -23,13 +22,13 @@ class DropdownButtonBuilder(BaseBuilder):
     type: Literal["dropdown-button"] = "dropdown-button"
     
     # 按钮显示文本
-    label: str = Field(..., description="按钮显示文本")
+    label: str  # 按钮显示文本
     
     # 下拉按钮列表
-    buttons: List[Union[ButtonBuilder, dict]] = Field(..., description="下拉按钮列表")
+    buttons: List[Union[ButtonBuilder, dict]]  # 下拉按钮列表
     
     # 其他属性
-    class_name: Optional[str] = Field(None, description="指定添加 dropdown-button 类名")
-    size: Optional[Literal["xs", "sm", "md", "lg"]] = Field(None, description="设置按钮大小")
-    level: Optional[Literal["link", "primary", "enhance", "secondary", "info", "success", "warning", "danger", "light", "dark", "default"]] = Field("default", description="设置按钮样式")
-    placement: Optional[Literal["top", "bottom", "left", "right"]] = Field("bottom", description="下拉菜单位置")
+    class_name: Optional[str] = None  # 指定添加 dropdown-button 类名
+    size: Optional[Literal["xs", "sm", "md", "lg"]] = None  # 设置按钮大小
+    level: Optional[Literal["link", "primary", "enhance", "secondary", "info", "success", "warning", "danger", "light", "dark", "default"]] = "default"  # 设置按钮样式
+    placement: Optional[Literal["top", "bottom", "left", "right"]] = "bottom"  # 下拉菜单位置
