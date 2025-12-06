@@ -1,24 +1,20 @@
 from typing import Dict
 
-from ninja import Router, Body
+from ninja import  Body
 
-from amis_python.builder.api import api
+from amis_python.builder.api import to_api
 from amis_python.builder.page import PageBuilder
 from amis_python.builder.form import FormBuilder
 from amis_python.builder.input import InputTextBuilder, InputEmailBuilder
+from amis_python.ninja_api import amis_api
 from amis_python.registry import register_page
 
-router = Router()
-
-
-@router.post("/save",operation_id="save_form")
+@amis_api.post("/form/save")
 def save_form(request, data: Dict = Body(...)):
     """
     保存表单数据
     """
-    print(data)
     return {"status": 0, "msg": "操作成功", "data": {}}
-
 
 # 创建PageBuilder实例
 page = PageBuilder(
@@ -26,7 +22,7 @@ page = PageBuilder(
     body=[
         FormBuilder(
             mode="horizontal",
-            api=api(save_form),
+            api=to_api(save_form),
             body=[
                 InputTextBuilder(
                     label="Name",

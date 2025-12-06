@@ -2,12 +2,12 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 
-@csrf_exempt
-def init_data(request):
-    """处理initData API请求，返回包含date字段的JSON响应"""
-    return JsonResponse({
-        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    })
+# @csrf_exempt
+# def init_data(request):
+#     """处理initData API请求，返回包含date字段的JSON响应"""
+#     return JsonResponse({
+#         "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+#     })
 
 # @csrf_exempt
 # def save_form(request):

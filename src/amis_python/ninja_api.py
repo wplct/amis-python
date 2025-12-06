@@ -1,132 +1,86 @@
-from typing import Any, Dict, List, Optional
-from django.urls import path
-from ninja.main import NinjaAPI
-from amis_python.builder.app import AppBuilder
-from amis_python.builder.page import PageBuilder
+from typing import List, Optional, Callable
+
+from ninja import NinjaAPI, Router
+from ninja.types import TCallable
+
+# 用于记录所有已注册的 URL name，确保全局唯一性
+url_name_set = set()
+
+def _get_unique_url_name(url_name: str) -> str:
+    """
+    生成一个唯一的 URL name。
+
+    如果传入的 url_name 尚未被使用，则直接返回；
+    如果已被使用，则在其后追加下划线和递增数字（如 _1, _2, ...），
+    直到生成一个未被使用的名称为止。
+
+    Args:
+        url_name (str): 原始的 URL name（通常来自视图函数名）。
+
+    Returns:
+        str: 唯一的 URL name。
+    """
+    # 检查原始名称是否尚未使用
+    if url_name not in url_name_set:
+        # 未使用：加入集合并直接返回
+        url_name_set.add(url_name)
+        return url_name
+
+    # 若原始名称已存在，则尝试添加后缀生成新名称
+    counter = 1
+    while True:
+        # 构造带序号的新名称，例如 "list_users_1"
+        new_name = f"{url_name}_{counter}"
+        # 如果新名称未被使用，则注册并返回
+        if new_name not in url_name_set:
+            url_name_set.add(new_name)
+            return new_name
+        # 否则继续尝试下一个序号
+        counter += 1
 
 
-class AmisNinja:
-    """
-    amis-python 与 django-ninja 的集成入口类
-    
-    提供 register_amis_app 方法，用于在 django-ninja 中注册 amis 应用，
-    自动生成路由和视图函数。
-    """
-    
-    def __init__(self, api: NinjaAPI):
+class AmisRouter(Router):
+    def api_operation(
+            self,
+            methods: List[str],
+            path: str,
+            *,
+            url_name: Optional[str] = None,
+            **kwargs
+    ) -> Callable[[TCallable], TCallable]:
+        def decorator(view_func: TCallable) -> TCallable:
+            # 如果 url_name 为 None，则使用 view_func 的函数名
+            effective_url_name = _get_unique_url_name(url_name) if url_name is not None else _get_unique_url_name(view_func.__name__)
+            # 调用 add_api_operation，传入 effective_url_name 和其他参数
+            self.add_api_operation(
+                path,
+                methods,
+                view_func,
+                url_name=effective_url_name,
+                **kwargs
+            )
+            return view_func
+
+        return decorator
+
+
+class AmisAPI(NinjaAPI):
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(default_router=AmisRouter(), *args, **kwargs)
+
+
+
+    def get_operation_url_name(self, operation, router):
         """
-        初始化 AmisNinja 实例
-        
-        Args:
-            api: django-ninja API 实例
+        为给定的操作（operation）生成唯一的 URL name。
+
+        默认使用视图函数的 __name__ 作为基础名称，
+        并通过 _get_unique_url_name 确保其唯一性。
         """
-        self.api = api
-        self.amis_apps: Dict[str, AppBuilder] = {}
-    
-    def register_amis_app(
-        self,
-        amis_app: AppBuilder,
-        prefix: str = "/amis",
-        name: Optional[str] = None
-    ) -> None:
-        """
-        在 django-ninja 中注册 amis 应用
-        
-        Args:
-            amis_app: amis 应用实例
-            prefix: 路由前缀，默认为 "/amis"
-            name: 应用名称，默认为 None
-        """
-        # 保存应用实例
-        app_name = name or f"amis_app_{len(self.amis_apps) + 1}"
-        self.amis_apps[app_name] = amis_app
-        
-        # 生成应用级路由
-        self._generate_app_routes(amis_app, prefix)
-        
-        # 生成页面级路由
-        self._generate_page_routes(amis_app, prefix)
-    
-    def _generate_app_routes(self, amis_app: AppBuilder, prefix: str) -> None:
-        """
-        生成应用级路由
-        
-        Args:
-            amis_app: amis 应用实例
-            prefix: 路由前缀
-        """
-        # 应用配置路由
-        @self.api.get(f"{prefix}/config")
-        def get_amis_app_config(request) -> Dict[str, Any]:
-            return amis_app.to_schema()
-    
-    def _generate_page_routes(self, amis_app: AppBuilder, prefix: str) -> None:
-        """
-        生成页面级路由
-        
-        Args:
-            amis_app: amis 应用实例
-            prefix: 路由前缀
-        """
-        # 遍历所有页面，生成路由
-        self._traverse_pages(amis_app.pages, prefix)
-    
-    def _traverse_pages(self, pages: List[Any], prefix: str) -> None:
-        """
-        遍历页面列表，生成路由
-        
-        Args:
-            pages: 页面列表
-            prefix: 路由前缀
-        """
-        from amis_python.builder.app import AppPageBuilder, AppPageGroupBuilder
-        
-        for page in pages:
-            if isinstance(page, AppPageBuilder):
-                # 生成页面路由
-                self._generate_single_page_routes(page, prefix)
-                # 递归处理子页面
-                self._traverse_pages(page.children, f"{prefix}/{page.label}")
-            elif isinstance(page, AppPageGroupBuilder):
-                # 递归处理分组内的页面
-                self._traverse_pages(page.children, f"{prefix}/{page.label}")
-    
-    def _generate_single_page_routes(self, page_builder: Any, prefix: str) -> None:
-        """
-        生成单个页面的路由
-        
-        Args:
-            page_builder: 页面构建器实例
-            prefix: 路由前缀
-        """
-        from amis_python.builder.page import PageBuilder
-        
-        # 遍历页面的 children，找到 PageBuilder 实例
-        for child in page_builder.children:
-            if isinstance(child, PageBuilder):
-                # 生成页面配置路由
-                @self.api.get(f"{prefix}/{page_builder.label}")
-                def get_page_config(request) -> Dict[str, Any]:
-                    return child.to_schema()
-                break
-    
-    def get_amis_app(self, name: str) -> Optional[AppBuilder]:
-        """
-        根据名称获取已注册的 amis 应用
-        
-        Args:
-            name: 应用名称
-            
-        Returns:
-            找到的 amis 应用实例，未找到则返回 None
-        """
-        return self.amis_apps.get(name)
-    
-    def list_amis_apps(self) -> List[str]:
-        """
-        列出所有已注册的 amis 应用名称
-        
-        Returns:
-            已注册的 amis 应用名称列表
-        """
-        return list(self.amis_apps.keys())
+        print("*"*88)
+        return _get_unique_url_name(operation.view_func.__name__)
+
+
+amis_api = AmisAPI()

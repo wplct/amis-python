@@ -26,7 +26,7 @@ class AmisPythonConfig(AppConfig):
         register_default_app(AppBuilder(
             **app_config
         ))
-
+    #
     #     # 新增：自动扫描其他app中的amis配置
     #     self._discover_amis_configs()
     #

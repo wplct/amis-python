@@ -1,9 +1,8 @@
 from typing import Literal, Optional, Dict, Any, Callable
 
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 
 from .base import BaseBuilder
-
 
 class AmisApiObject(BaseBuilder):
     """
@@ -43,15 +42,17 @@ class LazyAmisApiObject(BaseBuilder):
         }
 
     def to_schema(self, by_alias=True, exclude_none=True) -> Dict[str, Any]:
-        print(reverse("api:save_form"))
+
         if self._api_obj is None:
+            print(self.api_view._ninja_operation.url_name)
+            from ninja.operation import Operation
             self._api_obj = AmisApiObject(
-                url=reverse("api:save_form"),
+                url=reverse(f"api-1.0.0:{self.api_view._ninja_operation.url_name}"),
                 method="post",
                 **self._kwargs
             )
         return self._api_obj.to_schema(by_alias, exclude_none)
 
 
-def api(api_view) -> LazyAmisApiObject:
+def to_api(api_view) -> LazyAmisApiObject:
     return LazyAmisApiObject(api_view=api_view)
