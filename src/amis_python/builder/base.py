@@ -21,26 +21,9 @@ class BaseBuilder:
     on_event: Optional[Dict[str, Any]] = None  # 事件动作配置
 
     def __init__(self, **kwargs):
-
-        # 处理列表类型的属性，确保它们被正确初始化
-        for attr_name, attr_type in self.__annotations__.items():
-            if attr_name not in kwargs and hasattr(self, attr_name):
-                attr_value = getattr(self, attr_name)
-                if attr_value is None:
-                    continue
-                if isinstance(attr_value, list) and not attr_value:
-                    setattr(self, attr_name, [])
-                if isinstance(attr_value, dict) and not attr_value:
-                    setattr(self, attr_name, {})
-                if isinstance(attr_value, tuple) and not attr_value:
-                    setattr(self, attr_name, ())
-
         # 使用传入的 kwargs 更新属性
         for k, v in kwargs.items():
             setattr(self, k, v)
-
-        # 确保 on_event 被正确初始化
-        self.on_event = getattr(self, 'on_event', None)
 
     def add_action(
             self,
@@ -59,7 +42,6 @@ class BaseBuilder:
         """
         from .event import AmisEvent
         from .action.action import ActionBuilder
-
         # 初始化 on_event 字典（如果不存在）
         if self.on_event is None:
             self.on_event = {}
@@ -81,7 +63,6 @@ class BaseBuilder:
         # 创建 EventAction 对象
         from .event import EventAction
         event_action = EventAction(actions=processed_actions)
-
         # 添加到 on_event 字典
         if event_name_str in self.on_event:
             self.on_event[event_name_str].actions.extend(event_action.actions)
@@ -94,7 +75,8 @@ class BaseBuilder:
     def to_schema(self, by_alias=True, exclude_none=True):
         result = {}
         # 遍历所有注解的字段（包括类属性）
-        for key in self.__class__.__annotations__:
+
+        for key in [k for k in dir(self) if not callable(getattr(self, k))]:
             if key.startswith('_'):
                 continue
             if not hasattr(self, key):

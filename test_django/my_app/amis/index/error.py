@@ -22,6 +22,8 @@
   "toolbar": "工具栏",
   "initApi": "/amis/api/mock2/page/initDataError"
 }"""
+from ninja.errors import HttpError
+
 from amis_python import to_api
 from amis_python.builder.page import PageBuilder
 from amis_python.ninja_api import amis_api
@@ -29,7 +31,7 @@ from amis_python.registry import register_page
 
 @amis_api.get("/error/get_error")
 def init_data_error(request):
-    return {"code": 500, "msg": "初始化出错123123", "data":""}
+    raise ValueError("初始化出错")
 
 # 创建PageBuilder实例
 page = PageBuilder(

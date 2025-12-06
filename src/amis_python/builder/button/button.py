@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, Dict, List, Optional, Union, Literal
 
-from .base import BaseBuilder
+from amis_python.builder.base import BaseBuilder
 
 
 class ButtonBuilder(BaseBuilder):

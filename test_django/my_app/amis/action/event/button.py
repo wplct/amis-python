@@ -3,9 +3,9 @@ from amis_python import register_page, PageBuilder
 from amis_python.builder.action import ToastActionBuilder
 from amis_python.builder.action_container import ActionContainerBuilder
 from amis_python.builder.button import ButtonBuilder
-from amis_python.builder.button_group import ButtonGroupBuilder
-from amis_python.builder.button_group_select import ButtonGroupSelectBuilder
-from amis_python.builder.button_toolbar import ButtonToolbarBuilder
+from amis_python.builder.button import ButtonGroupBuilder
+from amis_python.builder.button import ButtonGroupSelectBuilder
+from amis_python.builder.button import ButtonToolbarBuilder
 from amis_python.builder.color import ColorBuilder
 from amis_python.builder.dropdown_button import DropdownButtonBuilder
 from amis_python.builder.event import AmisEvent
@@ -23,7 +23,7 @@ register_page("按钮类组件事件", "/action/event/button", PageBuilder(
             inline=False,
             wrapper_component="h2"
         ),
-        ButtonBuilder(label="Button")
+        ButtonBuilder(label="普通按钮")
             .add_action(
                 AmisEvent.click,
                 ToastActionBuilder(msg_type="info", msg="派发点击事件")

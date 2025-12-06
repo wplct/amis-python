@@ -23,7 +23,7 @@ class AppPageBuilder(BaseBuilder):
     is_default_page: Optional[bool] = None  # 当你需要自定义 404 页面的时候有用
     visible: Optional[bool] = None  # 有些页面可能不想出现在菜单中，可以配置成 false
     class_name: Optional[str] = None  # 菜单类名
-    children: Optional[List["AppPageBuilder"]] = []  # 分组内包含的页面或嵌套分组
+    children: Optional[List["AppPageBuilder"]] = None  # 分组内包含的页面或嵌套分组
     # ---- 辅助字段 ----
     path: Optional[str] = None  # 页面路径,对于Amis没用
     _lazy_schema: Optional[PageBuilder] = None  # 懒加载页面
@@ -45,6 +45,8 @@ class AppPageBuilder(BaseBuilder):
             label: str,
             path: str,
     ) -> "AppPageBuilder":
+        if self.children is None:
+            self.children = []
         if not path.startswith(self.path):
             raise ValueError(f"Path '{path}' is not under '{self.path}'.")
 

@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import List, Optional, Union, Literal
 
-from .base import BaseBuilder
-from .button import ButtonBuilder
+from amis_python.builder.base import BaseBuilder
+from amis_python.builder.button import ButtonBuilder
 
 
 class ButtonGroupBuilder(BaseBuilder):

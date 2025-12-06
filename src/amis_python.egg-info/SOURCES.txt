@@ -15,10 +15,6 @@ src/amis_python/builder/__init__.py
 src/amis_python/builder/action_container.py
 src/amis_python/builder/api.py
 src/amis_python/builder/base.py
-src/amis_python/builder/button.py
-src/amis_python/builder/button_group.py
-src/amis_python/builder/button_group_select.py
-src/amis_python/builder/button_toolbar.py
 src/amis_python/builder/color.py
 src/amis_python/builder/dropdown_button.py
 src/amis_python/builder/event.py
@@ -44,8 +40,14 @@ src/amis_python/builder/app/__init__.py
 src/amis_python/builder/app/app.py
 src/amis_python/builder/app/group.py
 src/amis_python/builder/app/page.py
+src/amis_python/builder/button/__init__.py
+src/amis_python/builder/button/button.py
+src/amis_python/builder/button/button_group.py
+src/amis_python/builder/button/button_group_select.py
+src/amis_python/builder/button/button_toolbar.py
 src/amis_python/tests/__init__.py
 src/amis_python/tests/test_app_register.py
+src/amis_python/tests/test_button.py
 src/amis_python/tests/test_event_action.py
 tests/test_app.py
 tests/test_builder.py

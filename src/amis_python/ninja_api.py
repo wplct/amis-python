@@ -1,6 +1,9 @@
-from typing import List, Optional, Callable
+import logging
+from typing import List, Optional, Callable, Any
 
+from django.http import HttpRequest, HttpResponse
 from ninja import NinjaAPI, Router
+from ninja.errors import HttpError
 from ninja.types import TCallable
 
 # 用于记录所有已注册的 URL name，确保全局唯一性
@@ -83,3 +86,31 @@ class AmisAPI(NinjaAPI):
 
 
 amis_api = AmisAPI()
+
+
+# 自定义通用异常处理器（捕获所有未处理的异常）
+@amis_api.exception_handler(Exception)
+def generic_exception_handler(request: HttpRequest, exc: Exception):
+    # 可选：记录日志
+    logging.error(f"Unhandled exception: {exc}", exc_info=True)
+
+    return amis_api.create_response(
+        request,
+        {
+            "msg": str(exc),
+            "status": 500
+        },
+        status=200
+    )
+
+# 处理 Django Ninja 内置的 HttpError（比如 404、400 等）
+@amis_api.exception_handler(HttpError)
+def http_error_handler(request: HttpRequest, exc: HttpError):
+    return amis_api.create_response(
+        request,
+        {
+            "msg": exc.message,
+            "status": exc.status_code
+        },
+        status=exc.status_code
+    )
