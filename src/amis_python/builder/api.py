@@ -44,11 +44,22 @@ class LazyAmisApiObject(BaseBuilder):
     def to_schema(self, by_alias=True, exclude_none=True) -> Dict[str, Any]:
 
         if self._api_obj is None:
-            print(self.api_view._ninja_operation.url_name)
-            from ninja.operation import Operation
+            methods = self.api_view._ninja_operation.methods
+            method = ''
+            if 'GET' in methods:
+                method = 'get'
+            elif 'POST' in methods:
+                method = 'post'
+            elif 'PUT' in methods:
+                method = 'put'
+            elif 'DELETE' in methods:
+                method = 'delete'
+            elif 'PATCH' in methods:
+                method = 'patch'
+
             self._api_obj = AmisApiObject(
                 url=reverse(f"api-1.0.0:{self.api_view._ninja_operation.url_name}"),
-                method="post",
+                method=method,
                 **self._kwargs
             )
         return self._api_obj.to_schema(by_alias, exclude_none)

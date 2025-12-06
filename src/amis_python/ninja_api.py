@@ -79,7 +79,6 @@ class AmisAPI(NinjaAPI):
         默认使用视图函数的 __name__ 作为基础名称，
         并通过 _get_unique_url_name 确保其唯一性。
         """
-        print("*"*88)
         return _get_unique_url_name(operation.view_func.__name__)
 
 
