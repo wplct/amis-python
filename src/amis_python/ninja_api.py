@@ -5,6 +5,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import NinjaAPI, Router
 from ninja.errors import HttpError
 from ninja.types import TCallable
+from pydantic import BaseModel
 
 # 用于记录所有已注册的 URL name，确保全局唯一性
 url_name_set = set()
@@ -86,6 +87,22 @@ class AmisAPI(NinjaAPI):
 
 
 amis_api = AmisAPI()
+# 注册一个base用来获取相对路径
+@amis_api.get("/base_url")
+def base_url(request):
+    raise HttpError(404)
+
+
+class ApiResponse(BaseModel):
+    status: int      # "success" 或 "error"
+    msg: str         # 提示信息
+    data: Any = None # 实际数据，可以是 dict、list 或嵌套模型
+
+def success_response(data: Any = None, msg: str = "操作成功") -> dict:
+    return ApiResponse(status=0, msg=msg, data=data).model_dump()
+
+def error_response(msg: str = "操作失败", data: Any = None) -> dict:
+    return ApiResponse(status=1, msg=msg, data=data).model_dump()
 
 
 # 自定义通用异常处理器（捕获所有未处理的异常）
@@ -96,10 +113,7 @@ def generic_exception_handler(request: HttpRequest, exc: Exception):
 
     return amis_api.create_response(
         request,
-        {
-            "msg": str(exc),
-            "status": 500
-        },
+        error_response(msg=str(exc)),
         status=200
     )
 
@@ -108,9 +122,6 @@ def generic_exception_handler(request: HttpRequest, exc: Exception):
 def http_error_handler(request: HttpRequest, exc: HttpError):
     return amis_api.create_response(
         request,
-        {
-            "msg": exc.message,
-            "status": exc.status_code
-        },
+        error_response(msg=str(exc)),
         status=exc.status_code
     )

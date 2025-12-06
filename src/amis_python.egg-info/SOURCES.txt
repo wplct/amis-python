@@ -16,6 +16,7 @@ src/amis_python/builder/action_container.py
 src/amis_python/builder/api.py
 src/amis_python/builder/base.py
 src/amis_python/builder/color.py
+src/amis_python/builder/crud.py
 src/amis_python/builder/dropdown_button.py
 src/amis_python/builder/event.py
 src/amis_python/builder/form.py

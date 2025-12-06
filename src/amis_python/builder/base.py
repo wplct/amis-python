@@ -55,10 +55,7 @@ class BaseBuilder:
         # 处理动作列表，将 ActionBuilder 实例转换为字典
         processed_actions = []
         for action in actions:
-            if isinstance(action, ActionBuilder):
-                processed_actions.append(action.to_schema())
-            else:
-                processed_actions.append(action)
+            processed_actions.append(action)
 
         # 创建 EventAction 对象
         from .event import EventAction

@@ -1,8 +1,18 @@
+import re
 from typing import Literal, Optional, Dict, Any, Callable
 
 from django.urls import reverse, reverse_lazy
 
 from .base import BaseBuilder
+
+
+def convert_ninja_path_to_amis_template(path: str) -> str:
+    """
+    将 Django-Ninja 风格的路径 /xxx/{param}/yyy
+    转换为 AMIS 模板风格的路径 /xxx/${param}/yyy
+    """
+    return re.sub(r'\{([^}]+)\}', r'${\1}', path)
+
 
 class AmisApiObject(BaseBuilder):
     """
@@ -30,7 +40,7 @@ class LazyAmisApiObject(BaseBuilder):
     _api_obj: Optional[AmisApiObject] = None
     _kwargs: Optional[Dict[str, Any]] = None
 
-    def __init__(self, api_view,data=None,headers=None,request_adaptor=None,adaptor=None,timeout=None ,**kwargs):
+    def __init__(self, api_view, data=None, headers=None, request_adaptor=None, adaptor=None, timeout=None, **kwargs):
         super().__init__(**kwargs)
         self.api_view = api_view
         self._kwargs = {
@@ -44,7 +54,9 @@ class LazyAmisApiObject(BaseBuilder):
     def to_schema(self, by_alias=True, exclude_none=True) -> Dict[str, Any]:
 
         if self._api_obj is None:
-            methods = self.api_view._ninja_operation.methods
+            operation = self.api_view._ninja_operation
+            methods = operation.methods
+            base_url = '/'.join(reverse("api-1.0.0:base_url").split('/')[:-1])
             method = ''
             if 'GET' in methods:
                 method = 'get'
@@ -56,9 +68,9 @@ class LazyAmisApiObject(BaseBuilder):
                 method = 'delete'
             elif 'PATCH' in methods:
                 method = 'patch'
-
+            url = convert_ninja_path_to_amis_template(f"{base_url}{operation.path}")
             self._api_obj = AmisApiObject(
-                url=reverse(f"api-1.0.0:{self.api_view._ninja_operation.url_name}"),
+                url=url,
                 method=method,
                 **self._kwargs
             )
