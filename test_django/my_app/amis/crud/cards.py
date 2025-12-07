@@ -47,10 +47,13 @@ def delete_by_id(request, id: str):
 
 class CreateData(BaseModel):
     name: str
+    email: str
+    phone: str
+    address: str
 
 
 @amis_api.post("/crud/create")
-def create_test_data(request,data: Dict = Body(...)):
+def create_test_data(request,data: CreateData = Body(...)):
     print(data)
     return success_response({
         "ok": True
