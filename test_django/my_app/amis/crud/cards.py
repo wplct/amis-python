@@ -1,15 +1,17 @@
 from typing import Dict
 
-from ninja import Body
+from ninja import Body, ModelSchema
 from pydantic import BaseModel
 
 from amis_python import AppPageBuilder, register_page, PageBuilder, to_api
-from amis_python.builder.action import AjaxActionBuilder
+from amis_python.builder.action import AjaxActionBuilder, DialogActionBuilder
 from amis_python.builder.button import ButtonBuilder
 from amis_python.builder.crud import CRUDBuilder, CRUDCardsBuilder
 from amis_python.builder.event import AmisEvent
+from amis_python.builder.form import FormBuilder
 from amis_python.builder.tpl import TplBuilder
 from amis_python.ninja_api import amis_api, success_response
+from my_app.models import Domain
 
 
 @amis_api.get("/crud/initData")
@@ -45,28 +47,38 @@ def delete_by_id(request, id: str):
         "ok": True
     })
 
-class CreateData(BaseModel):
-    name: str
-    email: str
-    phone: str
-    address: str
+
+class CreateDomain(ModelSchema):
+    class Meta:
+        model = Domain
+        fields = ["name", "description"]
 
 
 @amis_api.post("/crud/create")
-def create_test_data(request,data: CreateData = Body(...)):
+def create_test_data(request, data: CreateDomain = Body(...)):
     print(data)
     return success_response({
         "ok": True
     })
 
+
+from amis_python.builder.form import api_to_form
+
 page = PageBuilder(
     title="增删改查示例",
     toolbar=[
-        ButtonBuilder(label="新增",level='primary', )
+        ButtonBuilder(label="新增", level='primary', )
         .add_action(
-                AmisEvent.click,
-                AjaxActionBuilder(api=to_api(create_test_data))
-            )
+            AmisEvent.click,
+            DialogActionBuilder(
+                dialog={
+                    'title': '新增用户',
+                    'body': [
+                        api_to_form(create_test_data)
+                    ]
+                }
+            ),
+        )
         ,
     ],
     body=[
@@ -94,9 +106,6 @@ page = PageBuilder(
                     },
                 ],
                 'actions': [
-                    AjaxActionBuilder(label="删除", api=to_api(delete_by_id)),
-                    AjaxActionBuilder(label="删除", api=to_api(delete_by_id)),
-                    AjaxActionBuilder(label="删除", api=to_api(delete_by_id)),
                     AjaxActionBuilder(label="删除", api=to_api(delete_by_id)),
                 ]
             },
