@@ -3,7 +3,7 @@ from amis_python.builder.action import UrlActionBuilder
 from amis_python.builder.event import AmisEvent
 from amis_python.builder.page import PageBuilder
 from amis_python.builder.form import FormBuilder
-from amis_python.builder.input import InputTextBuilder
+from amis_python.builder.input import InputTextBuilder, InputPasswordBuilder
 from amis_python.builder.button import ButtonBuilder
 
 
@@ -18,7 +18,7 @@ def get_login_page() -> PageBuilder:
         title="用户登录",
         body=[
             InputTextBuilder(name="username", label="用户名", required=True, placeholder="请输入用户名"),
-            InputTextBuilder(name="password", label="密码", required=True, placeholder="请输入密码")
+            InputPasswordBuilder(name="password", label="密码", required=True, placeholder="请输入密码")
         ],
         actions=[
             ButtonBuilder(label="登录", action_type="submit", primary=True),
@@ -26,7 +26,9 @@ def get_login_page() -> PageBuilder:
         ],
         horizontal=False,  # 垂直布局
         mode="horizontal",
-    ).add_action('submitSucc',UrlActionBuilder(url="/amis/", redirect_type="none"))
+    ).add_action('submitSucc',{
+              "actionType": "refresh"
+            })
     
     # 创建登录页面
     login_page = PageBuilder(

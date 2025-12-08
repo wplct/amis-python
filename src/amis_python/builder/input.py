@@ -58,3 +58,32 @@ class InputEmailBuilder(BaseBuilder):
     read_only: Optional[bool] = False  # 是否只读
     required: Optional[bool] = False  # 是否必填
     class_name: Optional[str] = None  # 指定添加 input-email 类名
+
+
+class InputPasswordBuilder(BaseBuilder):
+    """
+    构建 AMIS 密码输入框配置对象，对应 <InputPassword> 组件。
+    参考文档：https://aisuda.bce.baidu.com/amis/zh-CN/components/form/input-password
+    
+    示例：
+        input_password = InputPasswordBuilder(
+            name="password",
+            label="密码"
+        )
+    """
+    type: Literal["input-password"] = "input-password"
+    
+    # 字段名称
+    name: str  # 字段名称
+    
+    # 字段标签
+    label: str  # 字段标签
+    
+    # 其他属性
+    value: Optional[str] = None  # 默认值
+    placeholder: Optional[str] = None  # 占位提示文本
+    disabled: Optional[bool] = False  # 是否禁用
+    read_only: Optional[bool] = False  # 是否只读
+    required: Optional[bool] = False  # 是否必填
+    class_name: Optional[str] = None  # 指定添加 input-password 类名
+    reveal_password: Optional[bool] = True  # 是否展示密码显/隐按钮，默认为true
