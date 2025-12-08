@@ -31,6 +31,7 @@ class AmisEvent(str, Enum):
     afterReset = "afterReset"
     mouseenter = "mouseenter"
     mouseleave = "mouseleave"
+    confirm = "confirm"
 
 
 class EventAction(BaseBuilder):

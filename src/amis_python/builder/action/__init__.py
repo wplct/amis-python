@@ -11,6 +11,7 @@ from .reset_action import ResetActionBuilder
 from .submit_action import SubmitActionBuilder
 from .clear_action import ClearActionBuilder
 from .toast_action import ToastActionBuilder
+from .reload_action import ReloadActionBuilder
 
 __all__ = [
     'ActionBuilder',
@@ -24,5 +25,6 @@ __all__ = [
     'ResetActionBuilder',
     'SubmitActionBuilder',
     'ClearActionBuilder',
-    'ToastActionBuilder'
+    'ToastActionBuilder',
+    'ReloadActionBuilder'
 ]

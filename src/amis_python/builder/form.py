@@ -5,6 +5,7 @@ from typing import List, Optional, Union, Any, Literal, Callable, get_type_hints
 from ninja import ModelSchema
 from pydantic import BaseModel
 
+from .action import ToastActionBuilder, ReloadActionBuilder
 from .base import BaseBuilder
 from .button import ButtonBuilder
 from .input import InputTextBuilder, InputEmailBuilder
@@ -91,5 +92,5 @@ def api_to_form(api_view: Callable) -> FormBuilder:
     # 创建并返回 FormBuilder 对象
     return FormBuilder(
         api=to_api(api_view),
-        body=form_fields
-    )
+        body=form_fields,
+    ).add_action('submitSucc',ReloadActionBuilder(component_id="curd"))
