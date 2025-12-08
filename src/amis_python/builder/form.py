@@ -1,6 +1,7 @@
 from __future__ import annotations
 import inspect
-from typing import List, Optional, Union, Any, Literal, Callable, get_type_hints
+from datetime import datetime
+from typing import List, Optional, Union, Any, Literal, Callable, get_type_hints, Type
 
 from ninja import ModelSchema
 from pydantic import BaseModel
@@ -8,7 +9,7 @@ from pydantic import BaseModel
 from .action import ToastActionBuilder, ReloadActionBuilder
 from .base import BaseBuilder
 from .button import ButtonBuilder
-from .input import InputTextBuilder, InputEmailBuilder
+from .input import InputTextBuilder, InputEmailBuilder, InputDatetimeBuilder
 from .api import to_api
 
 
@@ -51,6 +52,38 @@ class FormBuilder(BaseBuilder):
     label_align: Optional[str] = None  # 标签对齐方式
     label_width: Optional[Union[str, int]] = None  # 标签宽度
 
+    wrap_with_panel: Optional[bool] = None
+
+def schema_to_form(schema: Type[BaseModel],**kwargs) -> FormBuilder:
+    """
+    根据 ModelSchema 生成 FormBuilder 对象
+    """
+    form_fields = []
+    for field_name, field in schema.model_fields.items():
+
+        py_type = field.annotation
+
+        if py_type is datetime:
+            form_fields.append(
+                InputDatetimeBuilder(  # 换成你自己的日期组件
+                    label=field.title or field_name,
+                    name=field_name,
+                    required=field.is_required()
+                )
+            )
+            continue
+        form_fields.append(
+            InputTextBuilder(
+                label=field.title,
+                name=field_name,
+                required=field.is_required()
+            )
+        )
+    return FormBuilder(
+        body=form_fields,
+        **kwargs,
+    )
+
 
 def api_to_form(api_view: Callable) -> FormBuilder:
     """
@@ -79,18 +112,8 @@ def api_to_form(api_view: Callable) -> FormBuilder:
         )
     
     # 生成表单字段
-    form_fields = []
-    for field_name, field in body_model.model_fields.items():
-        form_fields.append(
-            InputTextBuilder(
-                label=field.title,
-                name=field_name,
-                required=field.is_required()
-            )
-        )
-    
-    # 创建并返回 FormBuilder 对象
-    return FormBuilder(
-        api=to_api(api_view),
-        body=form_fields,
-    ).add_action('submitSucc',ReloadActionBuilder(component_id="curd"))
+    form = schema_to_form(body_model)
+    form.api = to_api(api_view)
+    form.add_action('submitSucc',ReloadActionBuilder(component_id="curd"))
+    # 返回 FormBuilder 对象
+    return form
