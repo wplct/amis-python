@@ -24,3 +24,4 @@ class UrlActionBuilder(ActionBuilder):
     confirm_text: Optional[str] = None  # 确认提示文本
     close: Optional[bool] = None  # 是否关闭当前组件
     reload: Optional[Any] = None  # 是否刷新指定组件
+    redirect_type: Optional[str] = None  # 重定向类型，设置为'none'时不会将表单结果作为参数附加到URL

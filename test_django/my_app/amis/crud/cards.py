@@ -83,12 +83,13 @@ page = PageBuilder(
                 },
             )
         ),
+        {"type": "divider"},
         CRUDCardsBuilder(
             id="curd",
             api=to_api(init_data),
             multiple=True,
             card={
-                'header': {'title': '用户信息-${name}'},
+                # 'header': {'title': '用户信息-${name}'},
                 'body': [
                     {
                         "label": "id",
@@ -127,7 +128,7 @@ page = PageBuilder(
 
                 ]
             },
-            bulk_actions=[AjaxActionBuilder(label="删除选中", api=to_api(delete))],
+            # bulk_actions=[AjaxActionBuilder(label="删除选中", api=to_api(delete))],
             # actions=[
             #     AjaxActionBuilder(label="测试删除", api=to_api(delete))
             # ],

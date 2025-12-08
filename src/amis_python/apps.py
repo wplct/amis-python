@@ -4,6 +4,9 @@ from django.apps import AppConfig
 from django.conf import settings
 
 from . import AppBuilder, register_default_app
+from .builder.action import AjaxActionBuilder
+from .builder.button import ButtonBuilder
+
 # 默认 amis 应用实例初始化为 None，允许用户手动注册
 _default_amis_app: Optional[AppBuilder] = None
 from django.utils.module_loading import module_has_submodule
@@ -24,6 +27,10 @@ class AmisPythonConfig(AppConfig):
         """
         app_config = getattr(settings, 'AMIS_APP_CONFIG', {})
         register_default_app(AppBuilder(
+            header=[ButtonBuilder(label="退出登录").add_action(
+                'click',
+                AjaxActionBuilder(label="注销", api="/amis/api/logout")
+            )],
             **app_config
         ))
     #

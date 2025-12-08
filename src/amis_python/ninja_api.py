@@ -3,8 +3,10 @@ from functools import wraps
 from typing import List, Optional, Callable, Any, TypeVar, Generic
 
 from django.http import HttpRequest, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from ninja import NinjaAPI, Router
 from ninja.errors import HttpError
+from ninja.security import SessionAuth, django_auth
 from ninja.types import TCallable
 from pydantic import BaseModel
 
@@ -103,9 +105,7 @@ class AmisAPI(NinjaAPI):
 
 
     def __init__(self, *args, **kwargs):
-        super().__init__(default_router=AmisRouter(), *args, **kwargs)
-
-
+        super().__init__(default_router=AmisRouter(),auth=django_auth, *args, **kwargs)
 
     def get_operation_url_name(self, operation, router):
         """
@@ -117,6 +117,10 @@ class AmisAPI(NinjaAPI):
         return _get_unique_url_name(operation.view_func.__name__)
 
 
+# 创建Session认证实例
+session_auth = SessionAuth()
+
+# 创建API实例，默认使用Session认证
 amis_api = AmisAPI()
 # 注册一个base用来获取相对路径
 @amis_api.get("/base_url")

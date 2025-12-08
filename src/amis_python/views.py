@@ -1,6 +1,7 @@
 from django.http import JsonResponse, HttpResponse
 import os
 from .registry import get_default_app, get_page
+from .login_config import get_login_page
 
 
 def get_amis_app_config(request) -> JsonResponse:
@@ -13,14 +14,23 @@ def get_amis_app_config(request) -> JsonResponse:
     Returns:
         JsonResponse，包含 amis 应用配置
     """
+    # 检查用户是否已登录
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "未登录"}, status=401)
+    
     if get_default_app() is None:
         return JsonResponse({"error": "Default amis app not registered"}, status=500)
     return JsonResponse(get_default_app().to_schema())
+
 
 def get_page_config(request, page_path: str) -> JsonResponse:
     """
     获取页面配置
     """
+    # 检查用户是否已登录
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "未登录"}, status=401)
+    
     page_path = '/' + page_path
     page = get_page(page_path)
     return JsonResponse(page.to_schema())
@@ -41,3 +51,11 @@ def amis_index(request) -> HttpResponse:
     
     # 否则返回 404
     return HttpResponse(f"Index.html not found at {index_path}", status=404)
+
+
+def get_login_config(request) -> JsonResponse:
+    """
+    获取登录页面配置
+    """
+    login_page = get_login_page()
+    return JsonResponse(login_page.to_schema())

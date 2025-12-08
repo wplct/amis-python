@@ -43,157 +43,200 @@
         // 使用history库创建hash模式的history对象
         const history = History.createHashHistory();
 
-        // 从 API 获取 AMIS 配置
-        fetch('/amis/config/')
-            .then(response => response.json())
-            .then(amisJSON => {
+        // 定义 normalizeLink 函数，用来处理链接
+        function normalizeLink(to, location = history.location) {
+            to = to || '';
 
-                // 定义 normalizeLink 函数，用来处理链接
-                function normalizeLink(to, location = history.location) {
-                    to = to || '';
+            if (to && to[0] === '#') {
+                to = location.pathname + location.search + to;
+            } else if (to && to[0] === '?') {
+                to = location.pathname + to;
+            }
 
-                    if (to && to[0] === '#') {
-                        to = location.pathname + location.search + to;
-                    } else if (to && to[0] === '?') {
-                        to = location.pathname + to;
-                    }
+            const idx = to.indexOf('?');
+            const idx2 = to.indexOf('#');
+            let pathname = ~idx
+                ? to.substring(0, idx)
+                : ~idx2
+                    ? to.substring(0, idx2)
+                    : to;
+            let search = ~idx ? to.substring(idx, ~idx2 ? idx2 : undefined) : '';
+            let hash = ~idx2 ? to.substring(idx2) : location.hash;
 
-                    const idx = to.indexOf('?');
-                    const idx2 = to.indexOf('#');
-                    let pathname = ~idx
-                        ? to.substring(0, idx)
-                        : ~idx2
-                            ? to.substring(0, idx2)
-                            : to;
-                    let search = ~idx ? to.substring(idx, ~idx2 ? idx2 : undefined) : '';
-                    let hash = ~idx2 ? to.substring(idx2) : location.hash;
-
-                    if (!pathname) {
-                        pathname = location.pathname;
-                    } else if (pathname[0] != '/' && !/^https?\:\/\//.test(pathname)) {
-                        let relativeBase = location.pathname;
-                        const paths = relativeBase.split('/');
+            if (!pathname) {
+                pathname = location.pathname;
+            } else if (pathname[0] != '/' && !/^https?\:\/\//.test(pathname)) {
+                let relativeBase = location.pathname;
+                const paths = relativeBase.split('/');
+                paths.pop();
+                let m;
+                while ((m = /^\.\.?\//.exec(pathname))) {
+                    if (m[0] === '../') {
                         paths.pop();
-                        let m;
-                        while ((m = /^\.\.?\//.exec(pathname))) {
-                            if (m[0] === '../') {
-                                paths.pop();
-                            }
-                            pathname = pathname.substring(m[0].length);
-                        }
-                        pathname = paths.concat(pathname).join('/');
                     }
-
-                    return pathname + search + hash;
+                    pathname = pathname.substring(m[0].length);
                 }
+                pathname = paths.concat(pathname).join('/');
+            }
 
-                // 定义 isCurrentUrl 函数，用来判断当前 URL 是否与目标 URL 匹配
-                function isCurrentUrl(to, ctx) {
-                    if (!to) {
-                        return false;
-                    }
-                    const pathname = history.location.pathname;
-                    const link = normalizeLink(to, {
-                        ...location,
-                        pathname,
-                        hash: ''
-                    });
+            return pathname + search + hash;
+        }
 
-                    if (!~link.indexOf('http') && ~link.indexOf(':')) {
-                        let strict = ctx && ctx.strict;
-                        return match(link, {
-                            decode: decodeURIComponent,
-                            strict: typeof strict !== 'undefined' ? strict : true
-                        })(pathname);
-                    }
-
-                    return decodeURI(pathname) === link;
-                }
-
-                // 渲染 AMIS 应用
-                let amisInstance = amis.embed(
-                    '#root',
-                    amisJSON,
-                    {
-                        location: history.location,
-                        data: {},
-                        context: {}
-                    },
-                    {
-                        // 主题配置
-                        theme: 'antd',
-
-                        // 自定义 updateLocation 方法
-                        updateLocation: (location, replace) => {
-                            location = normalizeLink(location);
-                            if (location === 'goBack') {
-                                return history.goBack();
-                            } else if (
-                                (!/^https?\:\/\//.test(location) &&
-                                    location ===
-                                    history.location.pathname + history.location.search) ||
-                                location === history.location.href
-                            ) {
-                                // 目标地址和当前地址一样，不处理，免得重复刷新
-                                return;
-                            } else if (/^https?\:\/\//.test(location) || !history) {
-                                return (window.location.href = location);
-                            }
-
-                            history[replace ? 'replace' : 'push'](location);
-                        },
-
-                        // 自定义 jumpTo 方法
-                        jumpTo: (to, action) => {
-                            if (to === 'goBack') {
-                                return history.goBack();
-                            }
-
-                            to = normalizeLink(to);
-
-                            if (isCurrentUrl(to)) {
-                                return;
-                            }
-
-                            if (action && action.actionType === 'url') {
-                                action.blank === false
-                                    ? (window.location.href = to)
-                                    : window.open(to, '_blank');
-                                return;
-                            } else if (action && action.blank) {
-                                window.open(to, '_blank');
-                                return;
-                            }
-
-                            if (/^https?:\/\//.test(to)) {
-                                window.location.href = to;
-                            } else if (
-                                (!/^https?\:\/\//.test(to) &&
-                                    to === history.location.pathname + history.location.search) ||
-                                to === history.location.href
-                            ) {
-                                // do nothing
-                            } else {
-                                history.push(to);
-                            }
-                        },
-
-                        // 自定义 isCurrentUrl 方法
-                        isCurrentUrl: isCurrentUrl
-                    }
-                );
-
-                // 监听历史记录变化，更新 AMIS 实例的 props
-                history.listen(state => {
-                    amisInstance.updateProps({
-                        location: state.location || state
-                    });
-                });
-            })
-            .catch(error => {
-                console.error('Failed to load AMIS config:', error);
-                document.getElementById('root').innerHTML = '<div style="padding: 20px; color: red;">加载配置失败，请检查网络连接或服务器状态</div>';
+        // 定义 isCurrentUrl 函数，用来判断当前 URL 是否与目标 URL 匹配
+        function isCurrentUrl(to, ctx) {
+            if (!to) {
+                return false;
+            }
+            const pathname = history.location.pathname;
+            const link = normalizeLink(to, {
+                ...location,
+                pathname,
+                hash: ''
             });
+
+            if (!~link.indexOf('http') && ~link.indexOf(':')) {
+                let strict = ctx && ctx.strict;
+                return match(link, {
+                    decode: decodeURIComponent,
+                    strict: typeof strict !== 'undefined' ? strict : true
+                })(pathname);
+            }
+
+            return decodeURI(pathname) === link;
+        }
+
+        // 渲染主应用
+        function renderMainApp() {
+            fetch('/amis/config/')
+                .then(response => {
+                    if (response.status === 401) {
+                        // 未登录，渲染登录页面
+                        renderLoginPage();
+                        return Promise.reject('未登录');
+                    }
+                    return response.json();
+                })
+                .then(amisJSON => {
+                    // 渲染 AMIS 应用
+                    let amisInstance = amis.embed(
+                        '#root',
+                        amisJSON,
+                        {
+                            location: history.location,
+                            data: {},
+                            context: {}
+                        },
+                        {
+                            // 主题配置
+                            theme: 'antd',
+
+                            // 自定义 updateLocation 方法
+                            updateLocation: (location, replace) => {
+                                location = normalizeLink(location);
+                                if (location === 'goBack') {
+                                    return history.goBack();
+                                } else if (
+                                    (!/^https?\:\/\//.test(location) &&
+                                        location ===
+                                        history.location.pathname + history.location.search) ||
+                                    location === history.location.href
+                                ) {
+                                    // 目标地址和当前地址一样，不处理，免得重复刷新
+                                    return;
+                                } else if (/^https?\:\/\//.test(location) || !history) {
+                                    return (window.location.href = location);
+                                }
+
+                                history[replace ? 'replace' : 'push'](location);
+                            },
+
+                            // 自定义 jumpTo 方法
+                            jumpTo: (to, action) => {
+                                console.log('jumpTo', to, action);
+                                if (to === 'goBack') {
+                                    return history.goBack();
+                                }
+
+                                to = normalizeLink(to);
+
+                                if (isCurrentUrl(to)) {
+                                    return;
+                                }
+
+                                if (action && action.actionType === 'url') {
+                                    action.blank === false
+                                        ? (window.location.href = to)
+                                        : window.open(to, '_blank');
+                                    return;
+                                } else if (action && action.blank) {
+                                    window.open(to, '_blank');
+                                    return;
+                                }
+
+                                if (/^https?:\/\//.test(to)) {
+                                    window.location.href = to;
+                                } else if (
+                                    (!/^https?\:\/\//.test(to) &&
+                                        to === history.location.pathname + history.location.search) ||
+                                    to === history.location.href
+                                ) {
+                                    // do nothing
+                                } else {
+                                    history.push(to);
+                                }
+                            },
+
+                            // 自定义 isCurrentUrl 方法
+                            isCurrentUrl: isCurrentUrl
+                        }
+                    );
+
+                    // 监听历史记录变化，更新 AMIS 实例的 props
+                    history.listen(state => {
+                        amisInstance.updateProps({
+                            location: state.location || state
+                        });
+                    });
+                })
+                .catch(error => {
+                    if (error !== '未登录') {
+                        console.error('Failed to load AMIS config:', error);
+                        document.getElementById('root').innerHTML = '<div style="padding: 20px; color: red;">加载配置失败，请检查网络连接或服务器状态</div>';
+                    }
+                });
+        }
+
+        // 渲染登录页面
+        function renderLoginPage() {
+            fetch('/amis/login/config/')
+                .then(response => response.json())
+                .then(loginJSON => {
+                    // 渲染登录页面
+                    let amisInstance = amis.embed(
+                        '#root',
+                        loginJSON,
+                        {
+                            location: history.location,
+                            data: {},
+                            context: {}
+                        },
+                        {
+                            // 主题配置
+                            theme: 'antd',
+                            // 登录成功后的处理
+                            onEvent: (event) => {
+                            }
+                        }
+                    );
+                })
+                .catch(error => {
+                    console.error('Failed to load login config:', error);
+                    document.getElementById('root').innerHTML = '<div style="padding: 20px; color: red;">加载登录页面失败，请检查网络连接或服务器状态</div>';
+                });
+        }
+
+        // 初始化应用
+        renderMainApp();
     })();
 </script>
 </body>

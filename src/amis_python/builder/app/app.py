@@ -36,7 +36,7 @@ class AppBuilder(BaseBuilder):
     aside_folded: bool = False  # 侧边栏是否默认折叠（默认 false）
 
     # === 自定义区域 ===
-    header: Optional[Union[str, dict]] = None  # 顶部区域内容（支持 HTML 或 amis schema）
+    header: Optional[Union[str, dict,list]] = None  # 顶部区域内容（支持 HTML 或 amis schema）
     toolbar: Optional[Union[str, dict]] = None  # 顶部右侧工具栏内容（常用于放置通知、用户头像等）
     aside_before: Optional[Union[str, dict]] = None  # 页面菜单上前面区域
     aside_after: Optional[Union[str, dict]] = None  # 页面菜单下前面区域
