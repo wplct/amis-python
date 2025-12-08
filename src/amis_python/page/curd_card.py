@@ -54,7 +54,7 @@ def generate_crud_page(db_model: Type[Model], ) -> PageBuilder:
     show_form = schema_to_form(CRUDSchema, static=True, mode="inline", wrap_with_panel=False)
 
     return PageBuilder(
-        title=f"{db_model._meta.verbose_name}管理",
+        # title=f"{db_model._meta.verbose_name}管理",
         body=[
             ButtonBuilder(label="新增", level='primary', )
             .add_action(
