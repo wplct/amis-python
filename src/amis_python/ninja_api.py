@@ -1,5 +1,6 @@
 import logging
-from typing import List, Optional, Callable, Any
+from functools import wraps
+from typing import List, Optional, Callable, Any, TypeVar, Generic
 
 from django.http import HttpRequest, HttpResponse
 from ninja import NinjaAPI, Router
@@ -67,6 +68,36 @@ class AmisRouter(Router):
 
         return decorator
 
+    def add_api_operation(
+            self,
+            path: str,
+            methods: List[str],
+            view_func: TCallable,
+            *,
+            url_name: Optional[str] = None,
+            **kwargs
+    ) -> None:
+        # 保存原始函数
+        original_view = view_func
+
+        # 包装函数：用于实际处理请求
+        @wraps(original_view)
+        def wrapped_view(request: HttpRequest, *args, **kwargs_view) -> Any:
+            result = original_view(request, *args, **kwargs_view)
+            if isinstance(result, HttpResponse):
+                return result
+            return success_response(data=result)
+
+        # 调用父类，但关键点来了：
+        # 我们仍然注册 wrapped_view（因为要执行包装逻辑）
+        super().add_api_operation(
+            path, methods, wrapped_view, url_name=url_name, **kwargs
+        )
+
+        # 💡 但是！我们把 _ninja_operation 也复制给原始函数！
+        if hasattr(wrapped_view, "_ninja_operation"):
+            original_view._ninja_operation = wrapped_view._ninja_operation
+
 
 class AmisAPI(NinjaAPI):
 
@@ -93,10 +124,18 @@ def base_url(request):
     raise HttpError(404)
 
 
-class ApiResponse(BaseModel):
-    status: int      # "success" 或 "error"
-    msg: str         # 提示信息
-    data: Any = None # 实际数据，可以是 dict、list 或嵌套模型
+T = TypeVar("T")
+
+class ApiResponse(BaseModel, Generic[T]):
+    status: int = 0
+    msg: str = "操作成功"
+    data: Optional[T] = None
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    items: List[T]
+    count: int
+    page: int
+    pages: int
 
 def success_response(data: Any = None, msg: str = "操作成功") -> dict:
     return ApiResponse(status=0, msg=msg, data=data).model_dump()

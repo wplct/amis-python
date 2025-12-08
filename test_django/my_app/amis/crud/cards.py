@@ -1,6 +1,7 @@
-from typing import Dict
+from typing import Dict, List
 
 from ninja import Body, ModelSchema
+from ninja.pagination import paginate
 from pydantic import BaseModel
 
 from amis_python import AppPageBuilder, register_page, PageBuilder, to_api
@@ -10,7 +11,8 @@ from amis_python.builder.crud import CRUDBuilder, CRUDCardsBuilder
 from amis_python.builder.event import AmisEvent
 from amis_python.builder.form import FormBuilder
 from amis_python.builder.tpl import TplBuilder
-from amis_python.ninja_api import amis_api, success_response, ApiResponse
+from amis_python.ninja_api import amis_api, success_response, ApiResponse, PaginatedResponse
+from amis_python.pagination import AmisPagination, amis_paginate
 from my_app.models import Domain
 
 
@@ -20,24 +22,13 @@ class DomainSchema(ModelSchema):
         exclude = ("id",)
 
 
-@amis_api.get("/crud/initData")
+@amis_api.get("/crud/initData", response=ApiResponse[PaginatedResponse[DomainSchema]])
+@amis_paginate(DomainSchema)
 def init_data(request):
-    rows = Domain.objects.all()
-
-    return ApiResponse(
-        status=0,
-        msg="操作成功",
-        data={
-            "rows": [
-                DomainSchema.from_orm(row).model_dump() for row in rows
-            ],
-            "count": len(rows)
-        })
-
+    return Domain.objects.order_by("-id")
 
 @amis_api.post("/crud/delete/{ids}")
 def delete(request, ids: str):
-    print(ids)
     return success_response({
         "ok": True
     })
