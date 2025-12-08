@@ -22,3 +22,6 @@ dependencies = [
 where = ["src"]
 
 [tool.uv.workspace]
+
+[tool.setuptools.package-data]
+"*" = ["static/**/*"]
