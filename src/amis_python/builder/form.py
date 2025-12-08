@@ -2,6 +2,9 @@ from __future__ import annotations
 import inspect
 from typing import List, Optional, Union, Any, Literal, Callable, get_type_hints
 
+from ninja import ModelSchema
+from pydantic import BaseModel
+
 from .base import BaseBuilder
 from .button import ButtonBuilder
 from .input import InputTextBuilder, InputEmailBuilder
@@ -59,52 +62,14 @@ def api_to_form(api_view: Callable) -> FormBuilder:
     body_model = None
     
     # 获取函数的签名和参数
-    sig = inspect.signature(api_view)
-    params = list(sig.parameters.values())
-    print(params)
+    # sig = inspect.signature(api_view)
+    # params = list(sig.parameters.values())
     # 获取类型提示
     type_hints = get_type_hints(api_view)
-    
-    # 遍历参数，查找 Body 参数
-    for param in params:
-        param_name = param.name
-        param_annotation = param.annotation
-        
-        # 检查参数是否有 Body 注解
-        if param_annotation != inspect.Parameter.empty:
-            # 检查参数是否是 Body 类型
-            annotation_str = str(param_annotation)
-            if 'Body' in annotation_str:
-                # 从类型提示中获取实际的 ModelSchema 类型
-                if param_name in type_hints:
-                    # 获取类型提示中的实际类型
-                    hint_type = type_hints[param_name]
-                    
-                    # 处理泛型类型，获取内部类型
-                    if hasattr(hint_type, '__origin__'):
-                        # 对于泛型类型，获取第一个类型参数
-                        origin = hint_type.__origin__
-                        if origin is not None and hasattr(hint_type, '__args__'):
-                            args = hint_type.__args__
-                            if args:
-                                body_model = args[0]
-                    else:
-                        # 直接使用类型
-                        body_model = hint_type
-                    break
-    print(body_model)
-    if not body_model:
-        # 如果没有找到 Body 参数，检查所有参数类型
-        for param_name, param_type in type_hints.items():
-            # 检查类型是否是 ModelSchema 子类
-            if hasattr(param_type, '__mro__'):
-                for base in param_type.__mro__:
-                    if base.__name__ == 'ModelSchema':
-                        body_model = param_type
-                        break
-                if body_model:
-                    break
-    
+    if 'data' in type_hints:
+        body_model = type_hints['data']
+        if not issubclass(body_model, BaseModel):
+            raise ValueError("data 必须是 ModelSchema 子类")
     if not body_model:
         # 如果没有 Body 参数，返回空表单
         return FormBuilder(
@@ -115,16 +80,13 @@ def api_to_form(api_view: Callable) -> FormBuilder:
     # 生成表单字段
     form_fields = []
     for field_name, field in body_model.model_fields.items():
-        # 生成字段标签（首字母大写，下划线转空格）
-        label = field_name.replace('_', ' ').capitalize()
-        
-        # 根据字段类型生成对应的表单字段
-        # 这里可以扩展更多字段类型的映射
-        if field_name.endswith('_email') or field_name == 'email':
-            form_fields.append(InputEmailBuilder(name=field_name, label=label))
-        else:
-            # 默认使用文本输入框
-            form_fields.append(InputTextBuilder(name=field_name, label=label))
+        form_fields.append(
+            InputTextBuilder(
+                label=field.title,
+                name=field_name,
+                required=field.is_required()
+            )
+        )
     
     # 创建并返回 FormBuilder 对象
     return FormBuilder(

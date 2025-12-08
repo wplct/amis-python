@@ -10,26 +10,29 @@ from amis_python.builder.crud import CRUDBuilder, CRUDCardsBuilder
 from amis_python.builder.event import AmisEvent
 from amis_python.builder.form import FormBuilder
 from amis_python.builder.tpl import TplBuilder
-from amis_python.ninja_api import amis_api, success_response
+from amis_python.ninja_api import amis_api, success_response, ApiResponse
 from my_app.models import Domain
+
+
+class DomainSchema(ModelSchema):
+    class Meta:
+        model = Domain
+        exclude = ("id",)
 
 
 @amis_api.get("/crud/initData")
 def init_data(request):
-    rows = [
-        {
-            "id": i,
-            "name": f"用户{i}",
-            "email": "",
-            "phone": "",
-            "address": "",
-        } for i in range(10)
-    ]
+    rows = Domain.objects.all()
 
-    return success_response({
-        "rows": rows,
-        "count": 3
-    })
+    return ApiResponse(
+        status=0,
+        msg="操作成功",
+        data={
+            "rows": [
+                DomainSchema.from_orm(row).model_dump() for row in rows
+            ],
+            "count": len(rows)
+        })
 
 
 @amis_api.post("/crud/delete/{ids}")
@@ -56,7 +59,7 @@ class CreateDomain(ModelSchema):
 
 @amis_api.post("/crud/create")
 def create_test_data(request, data: CreateDomain = Body(...)):
-    print(data)
+    Domain.objects.create(**data.model_dump())
     return success_response({
         "ok": True
     })
@@ -93,20 +96,36 @@ page = PageBuilder(
                         "name": "id"
                     },
                     {
-                        "label": "姓名",
+                        "label": "名称",
                         "name": "name"
                     },
                     {
-                        "label": "邮箱",
-                        "name": "email"
+                        "label": "描述",
+                        "name": "description"
                     },
                     {
-                        "label": "手机号",
-                        "name": "phone"
+                        "label": "创建时间",
+                        "name": "created_at"
+                    },
+                    {
+                        "label": "更新时间",
+                        "name": "updated_at"
                     },
                 ],
                 'actions': [
+                    ButtonBuilder(label="编辑", level="link").add_action(
+                        AmisEvent.click,
+                        DialogActionBuilder(
+                            dialog={
+                                'title': '编辑用户',
+                                'body': [
+                                    api_to_form(create_test_data)
+                                ]
+                            }
+                        ),
+                    ),
                     AjaxActionBuilder(label="删除", api=to_api(delete_by_id)),
+
                 ]
             },
             bulk_actions=[AjaxActionBuilder(label="测试选择删除", api=to_api(delete))],
