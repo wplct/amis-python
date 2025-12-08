@@ -13,7 +13,7 @@ from amis_python.ninja_api import PaginatedResponse, ApiResponse, amis_api
 from amis_python.pagination import amis_paginate
 
 
-def generate_crud_page(db_model: Type[Model],) -> PageBuilder:
+def generate_crud_page(db_model: Type[Model], ) -> PageBuilder:
     """创建基础CRUD页面"""
     # 获取模型名称
     model_name = db_model._meta.model_name
@@ -38,16 +38,35 @@ def generate_crud_page(db_model: Type[Model],) -> PageBuilder:
         obj = db_model.objects.create(**data.model_dump())
         return obj
 
-    @amis_api.post(f"/{model_name}/delete/"+"{id}", response=ApiResponse[Any])
+    @amis_api.post(f"/{model_name}/update/" + "{id}", response=ApiResponse[CRUDSchema])
+    def update_data(request, id: int, data: CRUDSchema):
+        obj = db_model.objects.get(id=id)
+        obj.update(**data.model_dump())
+        return obj
+
+    @amis_api.post(f"/{model_name}/delete/" + "{id}", response=ApiResponse[Any])
     def delete_by_id(request, id: int):
         db_model.objects.filter(id=id).delete()
         return {"ok": True}
 
-    show_form = schema_to_form(CRUDSchema,static=True,mode="inline",wrap_with_panel=False)
+    show_form = schema_to_form(CRUDSchema, static=True, mode="inline", wrap_with_panel=False)
 
     return PageBuilder(
         title=f"{db_model._meta.verbose_name}管理",
         body=[
+            ButtonBuilder(label="新增", level='primary', )
+            .add_action(
+                AmisEvent.click,
+                DialogActionBuilder(
+                    dialog={
+                        'title': '新增',
+                        'body': [
+                            api_to_form(create_data)
+                        ]
+                    },
+                )
+            ),
+            {"type": "divider"},
             CRUDCardsBuilder(
                 id="curd",
                 api=to_api(data_list),
@@ -63,7 +82,7 @@ def generate_crud_page(db_model: Type[Model],) -> PageBuilder:
                                 dialog={
                                     'title': '编辑用户',
                                     'body': [
-                                        api_to_form(create_data)
+                                        api_to_form(update_data)
                                     ]
                                 }
                             ),
@@ -74,4 +93,3 @@ def generate_crud_page(db_model: Type[Model],) -> PageBuilder:
             )
         ]
     )
-
