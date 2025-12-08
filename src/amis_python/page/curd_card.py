@@ -21,7 +21,7 @@ def generate_crud_page(db_model: Type[Model], ) -> PageBuilder:
     class CRUDSchema(ModelSchema):
         class Meta:
             model = db_model
-            fields = "__all__"
+            exclude = ('created_at','updated_at','is_deleted')
 
     class CreateCRUDSchema(ModelSchema):
         class Meta:
