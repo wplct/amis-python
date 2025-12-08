@@ -26,20 +26,20 @@ def generate_crud_page(db_model: Type[Model], ) -> PageBuilder:
     class CreateCRUDSchema(ModelSchema):
         class Meta:
             model = db_model
-            exclude = ("id",)
+            exclude = ("id",'created_at','updated_at','is_deleted')
 
     @amis_api.get(f"/{model_name}/list", response=ApiResponse[PaginatedResponse[CRUDSchema]])
     @amis_paginate(CRUDSchema)
     def data_list(request):
         return db_model.objects.order_by("-id")
 
-    @amis_api.post(f"/{model_name}/create", response=ApiResponse[CRUDSchema])
+    @amis_api.post(f"/{model_name}/create", response=ApiResponse[CreateCRUDSchema])
     def create_data(request, data: CreateCRUDSchema):
         obj = db_model.objects.create(**data.model_dump())
         return obj
 
-    @amis_api.post(f"/{model_name}/update/" + "{id}", response=ApiResponse[CRUDSchema])
-    def update_data(request, id: int, data: CRUDSchema):
+    @amis_api.post(f"/{model_name}/update/" + "{id}", response=ApiResponse[CreateCRUDSchema])
+    def update_data(request, id: int, data: CreateCRUDSchema):
         obj = db_model.objects.get(id=id)
         obj.update(**data.model_dump())
         return obj
