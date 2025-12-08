@@ -41,7 +41,9 @@ def generate_crud_page(db_model: Type[Model], ) -> PageBuilder:
     @amis_api.post(f"/{model_name}/update/" + "{id}", response=ApiResponse[CreateCRUDSchema])
     def update_data(request, id: int, data: CreateCRUDSchema):
         obj = db_model.objects.get(id=id)
-        obj.update(**data.model_dump())
+        for key, value in data.dict(exclude_unset=True).items():
+            setattr(obj, key, value)
+        obj.save()
         return obj
 
     @amis_api.post(f"/{model_name}/delete/" + "{id}", response=ApiResponse[Any])
