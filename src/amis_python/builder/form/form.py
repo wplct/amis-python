@@ -1,7 +1,7 @@
 from __future__ import annotations
 import inspect
 from datetime import datetime
-from typing import List, Optional, Union, Any, Literal, Callable, get_type_hints, Type
+from typing import List, Optional, Union, Any, Literal, Callable, get_type_hints, Type, get_origin, get_args
 
 from ninja import ModelSchema, Schema
 from pydantic import BaseModel
@@ -12,7 +12,16 @@ from ..button import ButtonBuilder
 from .input import InputTextBuilder, InputEmailBuilder, InputDatetimeBuilder
 from ..api import to_api
 
-
+def _strip_optional(tp):
+    """把 Optional[T]、Union[T, None] 里的 T 拿出来，其余原样返回。"""
+    origin = get_origin(tp)
+    if origin is Union:
+        args = get_args(tp)
+        # 去掉 None 后只剩一个类型，就是 Optional
+        args = tuple(a for a in args if a is not type(None))
+        if len(args) == 1:
+            return args[0]
+    return tp
 class FormBuilder(BaseBuilder):
     """
     构建 AMIS 表单配置对象，对应 <Form> 组件。
@@ -62,6 +71,7 @@ def schema_to_form(schema: Type[BaseModel],**kwargs) -> FormBuilder:
     for field_name, field in schema.model_fields.items():
 
         py_type = field.annotation
+        py_type = _strip_optional(py_type)  # 1. 去掉 Optional
 
         if py_type is datetime:
             form_fields.append(
@@ -72,8 +82,15 @@ def schema_to_form(schema: Type[BaseModel],**kwargs) -> FormBuilder:
                 )
             )
             continue
+
         if issubclass(py_type, Schema):
-            continue
+            form_fields.append(
+                InputTextBuilder(
+                    label=field.title,
+                    name=f"{field_name}.name",
+                    required=field.is_required(),
+                )
+            )
         form_fields.append(
             InputTextBuilder(
                 label=field.title,
