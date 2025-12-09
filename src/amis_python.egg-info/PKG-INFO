@@ -6,6 +6,7 @@ Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 Requires-Dist: django-extensions>=3.2.3
 Requires-Dist: django-ninja>=1.5.0
+Requires-Dist: django-ninja-extra>=0.30.6
 Requires-Dist: mypy>=1.14.1
 Requires-Dist: pydantic>=1.6
 Requires-Dist: pytest>=8.3.5
@@ -70,107 +71,7 @@ urlpatterns = [
 ]
 ```
 
-#### 2. 创建 AMIS 应用
-
-在你的应用中创建一个 `amis.py` 文件，用于配置 AMIS 应用：
-
-```python
-from amis_python import register_default_app
-from amis_python.builder.app import AppBuilder
-from amis_python.builder.page import PageBuilder
-
-# 创建 AMIS 应用实例
-app = AppBuilder(
-    brand_name="我的应用"
-)
-
-# 注册分组
-app.register_page_group(label="首页分组")
-app.register_page_group(label="表单分组")
-
-# 注册首页
-app.register_page(
-    path="/home",
-    page=PageBuilder(
-        title="首页",
-        body=[
-            {
-                "type": "text",
-                "text": "欢迎使用 amis-python！"
-            },
-            {
-                "type": "button",
-                "label": "测试按钮",
-                "actionType": "button",
-                "level": "primary"
-            }
-        ]
-    ),
-    group="首页分组",
-    label="首页"
-)
-
-# 注册表单页面
-app.register_page(
-    path="/form",
-    page=PageBuilder(
-        title="表单页面",
-        body=[
-            {
-                "type": "form",
-                "mode": "horizontal",
-                "api": "/save-form",
-                "body": [
-                    {
-                        "label": "姓名",
-                        "type": "input-text",
-                        "name": "name",
-                        "required": True
-                    },
-                    {
-                        "label": "邮箱",
-                        "type": "input-email",
-                        "name": "email",
-                        "required": True
-                    }
-                ],
-                "actions": [
-                    {
-                        "type": "submit",
-                        "label": "提交"
-                    },
-                    {
-                        "type": "reset",
-                        "label": "重置"
-                    }
-                ]
-            }
-        ]
-    ),
-    group="表单分组",
-    label="表单页面"
-)
-
-# 注册默认应用
-register_default_app(app)
-```
-
-3. 在应用的 `apps.py` 中导入 `amis.py` 文件，确保应用启动时注册 AMIS 应用：
-
-```python
-from django.apps import AppConfig
-
-
-class MyAppConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'my_app'
-    
-    def ready(self):
-        # 导入 amis.py 文件，确保应用启动时注册 AMIS 应用
-        from . import amis
-```
-
-#### 4. 访问应用
+#### 2. 访问应用
 
 启动 Django 服务器后，访问以下 URL 查看 AMIS 应用：
 
@@ -205,6 +106,36 @@ app.register_page(
 # 集成 amis-python
 amis_ninja = AmisNinja(api)
 amis_ninja.register_amis_app(app, prefix="/amis")
+```
+
+## 组件组织
+
+amis-python 按照 AMIS 组件的功能和类型，将组件组织在不同的目录中，便于开发者查找和使用：
+
+### 核心组件分类
+
+| 分类 | 目录 | 包含组件 | 用途 |
+|------|------|----------|------|
+| 基础组件 | `base/` | `BaseBuilder`, `AmisApiObject` | 所有组件的基类和API对象 |
+| 布局组件 | `layout/` | `PageBuilder` | 页面布局相关组件 |
+| 容器组件 | `container/` | `ActionContainerBuilder`, `CRUDBuilder`, `DialogBuilder` | 容器类组件，用于组织其他组件 |
+| 表单组件 | `form/` | `FormBuilder`, `InputTextBuilder`, `InputEmailBuilder` | 表单相关组件，用于构建表单 |
+| 通用组件 | `general/` | `ColorBuilder`, `DividerBuilder`, `TplBuilder` | 通用组件，可在各种场景使用 |
+| 按钮组件 | `button/` | `ButtonBuilder`, `ButtonGroupBuilder` | 按钮相关组件 |
+| 动作组件 | `action/` | `ActionBuilder`, `AjaxActionBuilder` | 动作相关组件，用于触发操作 |
+| 应用组件 | `app/` | `AppBuilder`, `AppPageBuilder` | 应用相关组件，用于构建整个应用 |
+
+### 组件导入示例
+
+可以通过以下方式导入所需的组件：
+
+```python
+# 从 amis_python 直接导入（推荐）
+from amis_python import PageBuilder, FormBuilder, InputTextBuilder
+
+# 从具体模块导入
+from amis_python.builder.layout import PageBuilder
+from amis_python.builder.form import FormBuilder, InputTextBuilder
 ```
 
 ## 使用注意事项
@@ -254,10 +185,15 @@ amis-python/
 ├── src/                    # 主源码目录
 │   └── amis_python/        # 主要的 Python 包
 │       ├── builder/        # AMIS 组件构建器
-│       │   ├── app/        # App 相关构建器
-│       │   ├── api.py      # API 构建器
+│       │   ├── action/     # 动作组件
+│       │   ├── app/        # 应用组件
 │       │   ├── base.py     # 基础构建器
-│       │   └── page.py     # Page 构建器
+│       │   ├── button/     # 按钮组件
+│       │   ├── container/  # 容器组件
+│       │   ├── form/       # 表单组件
+│       │   ├── general/    # 通用组件
+│       │   ├── layout/     # 布局组件
+│       │   └── api.py      # API 构建器
 │       ├── static/         # 静态文件
 │       ├── views.py        # Django 视图
 │       ├── urls.py         # Django URL 配置

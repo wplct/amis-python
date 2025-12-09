@@ -3,7 +3,7 @@ from typing import Any, Type
 from django.db.models import Model
 from ninja import ModelSchema
 
-from amis_python import PageBuilder, CRUDCardsBuilder
+from amis_python import PageBuilder, CRUDCardsBuilder, DividerBuilder, DialogBuilder
 from amis_python.builder import to_api
 from amis_python.builder.action import DialogActionBuilder, AjaxActionBuilder
 from amis_python.builder.button import ButtonBuilder
@@ -13,20 +13,24 @@ from amis_python.ninja_api import PaginatedResponse, ApiResponse, amis_api
 from amis_python.pagination import amis_paginate
 
 
-def generate_crud_page(db_model: Type[Model], ) -> PageBuilder:
+def generate_crud_page(db_model: Type[Model],base_shema: Type[ModelSchema] = None,update_shema: Type[ModelSchema] = None ) -> PageBuilder:
     """创建基础CRUD页面"""
     # 获取模型名称
     model_name = db_model._meta.model_name
-
-    class CRUDSchema(ModelSchema):
-        class Meta:
-            model = db_model
-            exclude = ('created_at','updated_at','is_deleted')
-
-    class CreateCRUDSchema(ModelSchema):
-        class Meta:
-            model = db_model
-            exclude = ("id",'created_at','updated_at','is_deleted')
+    if base_shema:
+        CRUDSchema = base_shema
+    else:
+        class CRUDSchema(ModelSchema):
+            class Meta:
+                model = db_model
+                exclude = ('created_at','updated_at','is_deleted')
+    if update_shema:
+        CreateCRUDSchema = update_shema
+    else:
+        class CreateCRUDSchema(ModelSchema):
+            class Meta:
+                model = db_model
+                exclude = ("id",'created_at','updated_at','is_deleted')
 
     @amis_api.get(f"/{model_name}/list", response=ApiResponse[PaginatedResponse[CRUDSchema]])
     @amis_paginate(CRUDSchema)
@@ -60,15 +64,12 @@ def generate_crud_page(db_model: Type[Model], ) -> PageBuilder:
             .add_action(
                 AmisEvent.click,
                 DialogActionBuilder(
-                    dialog={
-                        'title': '新增',
-                        'body': [
+                    dialog=DialogBuilder(title=f"新增",body=[
                             api_to_form(create_data)
-                        ]
-                    },
+                        ]),
                 )
             ),
-            {"type": "divider"},
+            DividerBuilder(),
             CRUDCardsBuilder(
                 id="curd",
                 api=to_api(data_list),

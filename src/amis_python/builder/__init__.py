@@ -14,7 +14,7 @@ __all__ = [
     # 布局组件
     'PageBuilder',
     # 容器组件
-    'ActionContainerBuilder', 'CRUDBuilder', 'CRUDTableBuilder', 'CRUDCardsBuilder', 'CRUDListBuilder',
+    'ActionContainerBuilder', 'CRUDBuilder', 'CRUDTableBuilder', 'CRUDCardsBuilder', 'CRUDListBuilder', 'DialogBuilder',
     # 表单组件
     'FormBuilder', 'schema_to_form', 'api_to_form', 'InputTextBuilder', 'InputEmailBuilder', 'InputPasswordBuilder', 'InputDatetimeBuilder',
     # 通用组件

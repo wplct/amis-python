@@ -3,7 +3,7 @@ import inspect
 from datetime import datetime
 from typing import List, Optional, Union, Any, Literal, Callable, get_type_hints, Type
 
-from ninja import ModelSchema
+from ninja import ModelSchema, Schema
 from pydantic import BaseModel
 
 from ..action import ToastActionBuilder, ReloadActionBuilder
@@ -71,6 +71,8 @@ def schema_to_form(schema: Type[BaseModel],**kwargs) -> FormBuilder:
                     required=field.is_required()
                 )
             )
+            continue
+        if issubclass(py_type, Schema):
             continue
         form_fields.append(
             InputTextBuilder(
