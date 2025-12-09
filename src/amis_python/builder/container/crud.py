@@ -1,6 +1,7 @@
 from typing import Literal, Union, Optional, List, Dict, Any
 
-from amis_python import BaseBuilder, AmisApiObject
+from ..base import BaseBuilder
+from ..api import AmisApiObject
 
 
 class CRUDBuilder(BaseBuilder):

@@ -3,10 +3,10 @@ from typing import Any, Type
 from django.db.models import Model
 from ninja import ModelSchema
 
-from amis_python import PageBuilder, to_api
+from amis_python import PageBuilder, CRUDCardsBuilder
+from amis_python.builder import to_api
 from amis_python.builder.action import DialogActionBuilder, AjaxActionBuilder
 from amis_python.builder.button import ButtonBuilder
-from amis_python.builder.crud import CRUDCardsBuilder
 from amis_python.builder.event import AmisEvent
 from amis_python.builder.form import api_to_form, schema_to_form
 from amis_python.ninja_api import PaginatedResponse, ApiResponse, amis_api

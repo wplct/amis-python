@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Any, Dict, List, Optional, Union, Literal
 
-from .base import BaseBuilder
-from .api import AmisApiObject
+from ..base import BaseBuilder
+from ..api import AmisApiObject
 
 
 class PageBuilder(BaseBuilder):

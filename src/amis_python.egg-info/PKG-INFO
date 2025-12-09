@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: amis-python
 Version: 0.1.0
 Summary: Python-side schema builder for amis JSON

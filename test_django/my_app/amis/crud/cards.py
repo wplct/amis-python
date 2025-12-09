@@ -4,13 +4,7 @@ from ninja import Body, ModelSchema
 from ninja.pagination import paginate
 from pydantic import BaseModel
 
-from amis_python import AppPageBuilder, register_page, PageBuilder, to_api
-from amis_python.builder.action import AjaxActionBuilder, DialogActionBuilder, ReloadActionBuilder, ToastActionBuilder
-from amis_python.builder.button import ButtonBuilder
-from amis_python.builder.crud import CRUDBuilder, CRUDCardsBuilder
-from amis_python.builder.event import AmisEvent
-from amis_python.builder.form import FormBuilder
-from amis_python.builder.tpl import TplBuilder
+from amis_python import register_page
 from amis_python.ninja_api import amis_api, success_response, ApiResponse, PaginatedResponse
 from amis_python.page.curd_card import generate_crud_page
 from amis_python.pagination import AmisPagination, amis_paginate

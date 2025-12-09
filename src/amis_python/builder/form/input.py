@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional, Literal
 
-from .base import BaseBuilder
+from ..base import BaseBuilder
 
 
 class InputTextBuilder(BaseBuilder):

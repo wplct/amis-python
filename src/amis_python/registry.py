@@ -1,8 +1,8 @@
 import threading
 from typing import Optional
 
+from . import PageBuilder
 from .builder.app import AppBuilder, AppPageGroupBuilder, AppPageBuilder
-from .builder.page import PageBuilder
 
 # 模块级变量：显式初始化为 None，并带类型注解
 _default_amis_app: Optional[AppBuilder] = None

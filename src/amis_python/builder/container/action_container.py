@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Optional, Union
 
-from .base import BaseBuilder
+from ..base import BaseBuilder
 
 
 class ActionContainerBuilder(BaseBuilder):

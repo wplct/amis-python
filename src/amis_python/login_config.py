@@ -1,10 +1,5 @@
-from amis_python import to_api
-from amis_python.builder.action import UrlActionBuilder
-from amis_python.builder.event import AmisEvent
-from amis_python.builder.page import PageBuilder
-from amis_python.builder.form import FormBuilder
-from amis_python.builder.input import InputTextBuilder, InputPasswordBuilder
-from amis_python.builder.button import ButtonBuilder
+from . import FormBuilder, InputTextBuilder, InputPasswordBuilder, ButtonBuilder
+from .builder import PageBuilder, to_api
 
 
 def get_login_page() -> PageBuilder:

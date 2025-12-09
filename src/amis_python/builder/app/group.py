@@ -2,7 +2,7 @@
 from typing import Any, Dict, List, Union, Optional, Literal
 
 from ..base import BaseBuilder
-from ..page import PageBuilder
+from ..layout.page import PageBuilder
 from .page import AppPageBuilder
 
 

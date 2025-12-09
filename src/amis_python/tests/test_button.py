@@ -19,4 +19,3 @@ def test_button():
     print(but.to_schema())
 
 
-    print(BaseBuilder.__annotations__)

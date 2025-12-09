@@ -6,11 +6,11 @@ from typing import List, Optional, Union, Any, Literal, Callable, get_type_hints
 from ninja import ModelSchema
 from pydantic import BaseModel
 
-from .action import ToastActionBuilder, ReloadActionBuilder
-from .base import BaseBuilder
-from .button import ButtonBuilder
+from ..action import ToastActionBuilder, ReloadActionBuilder
+from ..base import BaseBuilder
+from ..button import ButtonBuilder
 from .input import InputTextBuilder, InputEmailBuilder, InputDatetimeBuilder
-from .api import to_api
+from ..api import to_api
 
 
 class FormBuilder(BaseBuilder):

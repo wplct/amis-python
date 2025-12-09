@@ -1,5 +1,5 @@
-from amis_python import to_api as to_api
-from amis_python.builder.page import PageBuilder
+from amis_python import PageBuilder
+from amis_python.builder import to_api
 from amis_python.ninja_api import amis_api
 from amis_python.registry import register_page
 

@@ -2,10 +2,9 @@ from typing import Dict
 
 from ninja import  Body
 
+from amis_python import PageBuilder, FormBuilder, InputTextBuilder, InputEmailBuilder
 from amis_python.builder.api import to_api
-from amis_python.builder.page import PageBuilder
-from amis_python.builder.form import FormBuilder
-from amis_python.builder.input import InputTextBuilder, InputEmailBuilder
+
 from amis_python.ninja_api import amis_api
 from amis_python.registry import register_page
 
