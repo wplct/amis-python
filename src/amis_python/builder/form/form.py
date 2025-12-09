@@ -83,14 +83,14 @@ def schema_to_form(schema: Type[BaseModel],**kwargs) -> FormBuilder:
             )
             continue
 
-        if issubclass(py_type, Schema):
-            form_fields.append(
-                InputTextBuilder(
-                    label=field.title,
-                    name=f"{field_name}.name",
-                    required=field.is_required(),
-                )
-            )
+        # if issubclass(py_type, Schema):
+        #     form_fields.append(
+        #         InputTextBuilder(
+        #             label=field.title,
+        #             name=f"{field_name}.name",
+        #             required=field.is_required(),
+        #         )
+        #     )
         form_fields.append(
             InputTextBuilder(
                 label=field.title,
