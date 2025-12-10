@@ -122,7 +122,7 @@ def api_to_form(api_view: Callable) -> FormBuilder:
     if 'data' in type_hints:
         body_model = type_hints['data']
         if not issubclass(body_model, BaseModel):
-            raise ValueError("data 必须是 ModelSchema 子类")
+            raise ValueError("data 必须是 BaseModel 子类")
     if not body_model:
         # 如果没有 Body 参数，返回空表单
         return FormBuilder(
