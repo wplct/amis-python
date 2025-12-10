@@ -104,11 +104,20 @@ amis-python 按照 AMIS 组件的功能和类型，将组件组织在不同的�
 | 基础组件 | `base/` | `BaseBuilder`, `AmisApiObject` | 所有组件的基类和API对象 |
 | 布局组件 | `layout/` | `PageBuilder` | 页面布局相关组件 |
 | 容器组件 | `container/` | `ActionContainerBuilder`, `CRUDBuilder`, `DialogBuilder` | 容器类组件，用于组织其他组件 |
-| 表单组件 | `form/` | `FormBuilder`, `InputTextBuilder`, `InputEmailBuilder` | 表单相关组件，用于构建表单 |
+| 表单组件 | `form/` | `FormBuilder`, `FormItemBuilder`, `OptionsBuilder`, `InputTextBuilder`, `InputEmailBuilder`, `InputPasswordBuilder`, `InputDatetimeBuilder` | 表单相关组件，用于构建表单 |
 | 通用组件 | `general/` | `ColorBuilder`, `DividerBuilder`, `TplBuilder` | 通用组件，可在各种场景使用 |
 | 按钮组件 | `button/` | `ButtonBuilder`, `ButtonGroupBuilder` | 按钮相关组件 |
 | 动作组件 | `action/` | `ActionBuilder`, `AjaxActionBuilder` | 动作相关组件，用于触发操作 |
 | 应用组件 | `app/` | `AppBuilder`, `AppPageBuilder` | 应用相关组件，用于构建整个应用 |
+
+### 组件开发规则
+
+1. **命名规范**：使用下划线命名而非驼峰命名，例如 `class_name` 而非 `className`
+2. **默认值规则**：属性默认值应该使用 `None`，默认值信息写在注释中，例如 `disabled: Optional[bool] = None  # 是否禁用，默认：False`
+3. **类型安全**：每个组件必须使用 Literal 类型指定 `type` 字段
+4. **继承关系**：组件应继承自 `BaseBuilder`
+5. **文档完善**：每个组件必须包含完整的 docstring，说明组件用途、参考文档和使用示例
+
 
 ### 组件导入示例
 
