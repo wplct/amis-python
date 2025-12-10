@@ -1,3 +1,4 @@
+from importlib import reload
 from typing import Any, Type, Optional, List, Dict, ClassVar
 from functools import wraps
 
@@ -160,7 +161,7 @@ class BaseCRUDPage:
         """获取额外的页面组件"""
         return []
 
-    def get_card_actions(self) -> List[Any]:
+    def get_detail_actions(self) -> List[Any]:
         """获取卡片操作按钮"""
         apis = self._register_apis()
 
@@ -192,7 +193,7 @@ class BaseCRUDPage:
                 DialogActionBuilder(
                     dialog=DialogBuilder(
                         title=f"新增{self.verbose_name}",
-                        body=[api_to_form(apis['create'])]
+                        body=[api_to_form(apis['create'])],
                     ),
                 )
             )
@@ -223,12 +224,12 @@ class BaseCRUDPage:
         # CRUD卡片
         body.append(
             CRUDCardsBuilder(
-                id=f"{self.model._meta.model_name}_crud",
+                id="crud_page",
                 api=to_api(apis['list']),
                 multiple=True,
                 card={
                     'body': [self.get_show_form()],
-                    'actions': self.get_card_actions()
+                    'actions': self.get_detail_actions()
                 },
             )
         )
@@ -284,7 +285,7 @@ if __name__ == "__main__":
             ]
 
         def get_card_actions(self):
-            base_actions = super().get_card_actions()
+            base_actions = super().get_detail_actions()
             base_actions.append(
                 ButtonBuilder(label="重置密码", level="link").add_action(
                     AmisEvent.click,

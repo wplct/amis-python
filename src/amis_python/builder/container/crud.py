@@ -81,6 +81,60 @@ class CRUDBuilder(BaseBuilder):
     checkable: Optional[bool] = None
     # 勾选框列宽
     check_column_width: Optional[Union[str, int]] = None
+    # 组件标题
+    title: Optional[str] = None
+    # 懒加载嵌套数据的API
+    defer_api: Optional[Union[AmisApiObject, str, Dict[str, Any]]] = None
+    # 开启loadDataOnce时，过滤是否重新请求
+    load_data_once_fetch_on_filter: Optional[bool] = None
+    # 过滤器是否可切换显示
+    filter_togglable: Optional[bool] = None
+    # 是否初始化拉取数据
+    init_fetch: Optional[bool] = None
+    # 刷新时是否隐藏加载动画
+    silent_polling: Optional[bool] = None
+    # 停止自动刷新的条件表达式
+    stop_auto_refresh_when: Optional[str] = None
+    # 配置行是否可拖拽的条件表达式
+    item_draggable_on: Optional[str] = None
+    # 保存排序的API
+    save_order_api: Optional[Union[AmisApiObject, str, Dict[str, Any]]] = None
+    # 快速编辑时即时保存的API
+    quick_save_item_api: Optional[Union[AmisApiObject, str, Dict[str, Any]]] = None
+    # 自定义消息提示
+    messages: Optional[Dict[str, str]] = None
+    # 分页页码字段名
+    page_field: Optional[str] = None
+    # 每页数量字段名
+    per_page_field: Optional[str] = None
+    # 数据总量字段名
+    total_field: Optional[str] = None
+    # 分页方向字段名
+    page_direction_field: Optional[str] = None
+    # 每页数量可选值
+    per_page_available: Optional[List[int]] = None
+    # 排序字段名
+    order_field: Optional[str] = None
+    # 是否隐藏顶部快速保存提示
+    hide_quick_save_btn: Optional[bool] = None
+    # 切换分页时是否自动跳至顶部
+    auto_jump_to_top_on_pager_change: Optional[bool] = None
+    # 是否将返回数据同步到过滤器
+    sync_response2_query: Optional[bool] = None
+    # 选择条目展示模板
+    label_tpl: Optional[str] = None
+    # 最大保留选择数量
+    max_keep_item_selection_length: Optional[int] = None
+    # 每页最大选择数量
+    max_item_selection_length: Optional[int] = None
+    # 是否总是显示分页
+    always_show_pagination: Optional[bool] = None
+    # 是否固定表头
+    affix_header: Optional[bool] = None
+    # 是否固定表格底部工具栏
+    affix_footer: Optional[bool] = None
+    # 是否允许访问父级数据域
+    can_access_super_data: Optional[bool] = None
 
 
 class CRUDTableBuilder(CRUDBuilder):
@@ -259,3 +313,37 @@ class CRUDListBuilder(CRUDBuilder):
     index_bar_class_name: Optional[str] = None
     # 索引条激活样式
     index_bar_active_class_name: Optional[str] = None
+    # 列表标题
+    title: Optional[str] = None
+    # 空状态配置
+    empty: Optional[Any] = None
+    # 加载状态配置
+    loading: Optional[Any] = None
+    # 列表项是否可悬停
+    item_hoverable: Optional[bool] = None
+    # 列表项是否可点击
+    item_clickable: Optional[bool] = None
+    # 可点击列表项是否显示箭头
+    show_arrow: Optional[bool] = None
+    # 虚拟列表配置
+    virtual_list: Optional[Union[bool, Dict[str, Any]]] = None
+    # 列表侧边栏配置
+    aside: Optional[Any] = None
+    # 列表头部配置
+    header: Optional[Any] = None
+    # 列表底部配置
+    footer: Optional[Any] = None
+    # 列表主体内容配置
+    body: Optional[Any] = None
+    # 列表项内容配置
+    content: Optional[Any] = None
+    # 列表项图标
+    icon: Optional[Any] = None
+    # 列表项描述
+    description: Optional[Any] = None
+    # 列表项操作配置
+    item_actions: Optional[List[Any]] = None
+    # 是否启用横向滚动
+    horizontal_scroll: Optional[bool] = None
+    # 横向滚动触发条件
+    horizontal_scroll_threshold: Optional[Union[str, int]] = None

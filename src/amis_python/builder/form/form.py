@@ -133,6 +133,7 @@ def api_to_form(api_view: Callable) -> FormBuilder:
     # 生成表单字段
     form = schema_to_form(body_model)
     form.api = to_api(api_view)
-    form.add_action('submitSucc',ReloadActionBuilder(component_id="curd"))
+    form.add_action('submitSucc',ReloadActionBuilder(component_id="crud_page"))
+    # form.add_action('submitSucc',ToastActionBuilder(msg='sb'))
     # 返回 FormBuilder 对象
     return form

@@ -12,6 +12,7 @@ from .submit_action import SubmitActionBuilder
 from .clear_action import ClearActionBuilder
 from .toast_action import ToastActionBuilder
 from .reload_action import ReloadActionBuilder
+from .confirm_dialog_action import ConfirmDialogActionBuilder
 
 __all__ = [
     'ActionBuilder',
@@ -26,5 +27,6 @@ __all__ = [
     'SubmitActionBuilder',
     'ClearActionBuilder',
     'ToastActionBuilder',
-    'ReloadActionBuilder'
+    'ReloadActionBuilder',
+    'ConfirmDialogActionBuilder',
 ]
