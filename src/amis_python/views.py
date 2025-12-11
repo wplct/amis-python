@@ -15,7 +15,7 @@ def get_login_page() -> dict:
     # 创建登录表单
     login_form = {
         "type": "form",
-        "api": "/api/login/",  # 表单提交到登录API
+        "api": "/amis/api/login",  # 表单提交到登录API
         "title": "用户登录",
         "body": [
             {

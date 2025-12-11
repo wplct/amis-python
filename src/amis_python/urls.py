@@ -62,9 +62,9 @@ urlpatterns = [
     # 页面配置路由（动态路由，匹配任意页面路径）
     path('page/<path:page_path>', get_page_config, name='get_page_config'),
     # API路由，必须在静态文件路由之前
-    path('api/login/', login, name='login'),
-    path('api/logout/', logout, name='logout'),
-    path('api/current_user/', current_user, name='current_user'),
+    path('api/login', login, name='login'),
+    path('api/logout', logout, name='logout'),
+    path('api/current_user', current_user, name='current_user'),
     # 静态文件路由，处理静态文件请求
     re_path(r'^(?P<path>.*)$', serve, {
         'document_root': amis_static_dir,
