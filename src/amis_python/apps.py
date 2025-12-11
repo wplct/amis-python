@@ -4,8 +4,6 @@ from django.apps import AppConfig
 from django.conf import settings
 
 from . import AppBuilder, register_default_app
-from .builder.action import AjaxActionBuilder
-from .builder.button import ButtonBuilder, ButtonToolbarBuilder
 
 # 默认 amis 应用实例初始化为 None，允许用户手动注册
 _default_amis_app: Optional[AppBuilder] = None
@@ -31,13 +29,25 @@ class AmisPythonConfig(AppConfig):
                 "type": "flex",
                 "justify": "flex-end",
                 "style": {"width": "100%"},
-                "items": [ButtonBuilder(label="退出登录").add_action(
-                    'click',
-                    AjaxActionBuilder(label="注销", api="post:/amis/api/logout")
-                ).add_action('click',{
-              "actionType": "refresh"
-            })
-                ]
+                "items": [{
+                    "type": "button",
+                    "label": "退出登录",
+                    "onEvent": {
+                        "click": {
+                            "actions": [
+                                {
+                                    "type": "action",
+                                    "actionType": "ajax",
+                                    "label": "注销",
+                                    "api": "post:/amis/api/logout"
+                                },
+                                {
+                                    "actionType": "refresh"
+                                }
+                            ]
+                        }
+                    }
+                }]
             }],
             **app_config
         ))

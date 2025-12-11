@@ -3,8 +3,96 @@ import os
 from django.contrib.auth import authenticate, login as django_login, logout as django_logout
 from django.views.decorators.csrf import csrf_exempt
 import json
+
+from . import PageBuilder
 from .registry import get_default_app, get_page
-from .login_config import get_login_page
+
+
+def get_login_page() -> dict:
+    """
+    创建登录页面配置
+    """
+    # 创建登录表单
+    login_form = {
+        "type": "form",
+        "api": "/api/login/",  # 表单提交到登录API
+        "title": "用户登录",
+        "body": [
+            {
+                "type": "input-text",
+                "name": "username",
+                "label": "用户名",
+                "required": True,
+                "placeholder": "请输入用户名"
+            },
+            {
+                "type": "input-password",
+                "name": "password",
+                "label": "密码",
+                "required": True,
+                "placeholder": "请输入密码"
+            }
+        ],
+        "actions": [
+            {
+                "type": "button",
+                "label": "登录",
+                "actionType": "submit",
+                "primary": True
+            },
+            {
+                "type": "button",
+                "label": "重置",
+                "actionType": "reset"
+            }
+        ],
+        "horizontal": False,  # 垂直布局
+        "mode": "horizontal",
+        "onEvent": {
+            "submitSucc": {
+                "actions": [
+                    {
+                        "actionType": "refresh"
+                    }
+                ]
+            }
+        }
+    }
+
+    # 创建登录页面
+    login_page = {
+        "type": "page",
+        "title": "登录",
+        "body": [
+            {
+                "type": "container",
+                "className": "login-container",
+                "style": {
+                    "display": "flex",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "height": "100%",
+                    "backgroundColor": "#f5f5f5"
+                },
+                "body": [
+                    {
+                        "type": "panel",
+                        "className": "login-panel",
+                        "style": {
+                            "width": "400px",
+                            "padding": "20px",
+                            "backgroundColor": "#fff",
+                            "borderRadius": "8px",
+                            "boxShadow": "0 2px 12px 0 rgba(0, 0, 0, 0.1)"
+                        },
+                        "body": login_form
+                    }
+                ]
+            }
+        ]
+    }
+
+    return login_page
 
 
 def get_amis_app_config(request) -> JsonResponse:
@@ -36,7 +124,7 @@ def get_page_config(request, page_path: str) -> JsonResponse:
     
     page_path = '/' + page_path
     page = get_page(page_path)
-    return JsonResponse(page.to_schema())
+    return JsonResponse(page)
 
 def amis_index(request) -> HttpResponse:
     """
@@ -61,7 +149,7 @@ def get_login_config(request) -> JsonResponse:
     获取登录页面配置
     """
     login_page = get_login_page()
-    return JsonResponse(login_page.to_schema())
+    return JsonResponse(login_page)
 
 
 @csrf_exempt
