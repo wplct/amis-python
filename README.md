@@ -4,13 +4,11 @@ amis-python 是一个为 Django 提供优雅解决方案的库，可以使用 AM
 
 ## 功能特性
 
-- **Pythonic 的 AMIS 组件构建方式**：使用 Python 代码构建 AMIS 组件，无需直接编写 JSON 配置
+- **用户认证系统**：内置登录、登出和用户信息管理功能
+- **页面注册机制**：支持从 Python 代码或 JSON 文件注册 AMIS 页面
+- **API 包装装饰器**：提供 `amis_wrap`、`amis_paginate`、`amis_filter`、`amis_search` 等装饰器，简化 API 与 AMIS 的集成
 - **Django 集成**：与 Django 框架深度集成，支持直接在 Django 项目中使用
-- **自动序列化**：将 Python 对象自动转换为符合 AMIS 规范的 JSON
-- **类型安全**：使用 Pydantic 和 Literal 类型确保组件配置的正确性
-- **易于扩展**：支持自定义组件和扩展现有组件
-- **支持分组和页面注册**：允许开发者组织和管理多个页面
-- **Django Ninja 集成**：支持与 Django Ninja 框架集成
+- **Django Ninja 集成**：支持与 Django Ninja 框架集成，提供 API 响应格式化和认证支持
 
 ## 适用场景
 
@@ -32,9 +30,7 @@ pip install amis-python
 
 ## 快速开始
 
-### Django 项目使用示例
-
-#### 1. 配置步骤
+### 1. 配置步骤
 
 1. 在 Django 项目的 `settings.py` 中添加 `amis_python` 到 `INSTALLED_APPS`：
 
@@ -45,79 +41,96 @@ INSTALLED_APPS = [
 ]
 ```
 
-2. 在项目的 `urls.py` 中添加 amis-python 的路由：
+2. 在项目的 `urls.py` 中添加 amis-python 和 Django Ninja 的路由：
 
 ```python
 from django.urls import path, include
-
-urlpatterns = [
-    # ...
-    path('amis/', include('amis_python.urls')),
-]
-```
-
-#### 2. 访问应用
-
-启动 Django 服务器后，访问以下 URL 查看 AMIS 应用：
-
-- 首页：`http://localhost:8000/amis/`
-- 应用配置：`http://localhost:8000/amis/config/`
-- 页面配置：`http://localhost:8000/amis/page/home/`
-
-### Django Ninja 集成
-
-如果你的项目使用 Django Ninja，可以使用 `AmisNinja` 类来集成 amis-python：
-
-```python
 from ninja import NinjaAPI
-from amis_python import AppBuilder, AmisNinja
-from amis_python.builder.page import PageBuilder
 
 # 创建 Django Ninja API
 api = NinjaAPI()
 
-# 创建 AMIS 应用
-app = AppBuilder(brand_name="My App")
-
-# 注册页面
-app.register_page_group(label="首页分组")
-app.register_page(
-    path="/home",
-    page=PageBuilder(title="首页"),
-    group="首页分组",
-    label="首页"
-)
-
-# 集成 amis-python
-amis_ninja = AmisNinja(api)
-amis_ninja.register_amis_app(app, prefix="/amis")
+urlpatterns = [
+    # ...
+    path('api/v1/', api.urls),  # Django Ninja API 路由
+    path('amis/', include('amis_python.urls')),  # amis-python 路由
+]
 ```
 
-## 组件组织
+### 2. API 包装装饰器使用示例
 
-amis-python 按照 AMIS 组件的功能和类型，将组件组织在不同的目录中，便于开发者查找和使用：
+使用 `amis_wrap`、`amis_paginate`、`amis_filter` 和 `amis_search` 装饰器简化 API 与 AMIS 的集成：
 
-### 核心组件分类
+```python
+from ninja import Router
+from django.contrib.auth import authenticate
+from amis_python import amis_wrap, amis_paginate, amis_filter, amis_search
+from amis_python.ninja_api import ApiResponse
 
-| 分类 | 目录 | 包含组件 | 用途 |
-|------|------|----------|------|
-| 基础组件 | `base/` | `BaseBuilder`, `AmisApiObject` | 所有组件的基类和API对象 |
-| 布局组件 | `layout/` | `PageBuilder` | 页面布局相关组件 |
-| 容器组件 | `container/` | `ActionContainerBuilder`, `CRUDBuilder`, `DialogBuilder` | 容器类组件，用于组织其他组件 |
-| 表单组件 | `form/` | `FormBuilder`, `FormItemBuilder`, `OptionsBuilder`, `InputTextBuilder`, `InputEmailBuilder`, `InputPasswordBuilder`, `InputDatetimeBuilder` | 表单相关组件，用于构建表单 |
-| 通用组件 | `general/` | `ColorBuilder`, `DividerBuilder`, `TplBuilder` | 通用组件，可在各种场景使用 |
-| 按钮组件 | `button/` | `ButtonBuilder`, `ButtonGroupBuilder` | 按钮相关组件 |
-| 动作组件 | `action/` | `ActionBuilder`, `AjaxActionBuilder` | 动作相关组件，用于触发操作 |
-| 应用组件 | `app/` | `AppBuilder`, `AppPageBuilder` | 应用相关组件，用于构建整个应用 |
+router = Router()
 
-### 组件开发规则
+@router.get('/list', auth=authenticate)
+@amis_wrap()
+@amis_paginate()
+@amis_filter()
+@amis_search('title', 'content','source')
+def list_messages(request):
+    # 你的 API 逻辑
+    return {
+        "items": [
+            {"id": 1, "title": "消息1", "content": "内容1", "source": "来源1"},
+            {"id": 2, "title": "消息2", "content": "内容2", "source": "来源2"}
+        ],
+        "total": 2
+    }
+```
 
-1. **命名规范**：使用下划线命名而非驼峰命名，例如 `class_name` 而非 `className`
-2. **默认值规则**：属性默认值应该使用 `None`，默认值信息写在注释中，例如 `disabled: Optional[bool] = None  # 是否禁用，默认：False`
-3. **类型安全**：每个组件必须使用 Literal 类型指定 `type` 字段
-4. **继承关系**：组件应继承自 `BaseBuilder`
-5. **文档完善**：每个组件必须包含完整的 docstring，说明组件用途、参考文档和使用示例
+### 3. 页面注册示例
 
+从 JSON 文件加载页面配置并注册：
+
+```python
+import json
+from pathlib import Path
+from amis_python import register_page
+
+# 获取当前 .py 文件所在目录
+current_dir = Path(__file__).parent
+
+# 构造 JSON 文件的绝对路径
+json_path = current_dir / "message.json"
+
+# 读取 JSON
+with open(json_path, encoding="utf-8") as f:
+    page = json.load(f)
+
+# 注册页面
+register_page("消息管理", "/message/message", page)
+```
+
+### 4. 访问应用
+
+启动 Django 服务器后，访问以下 URL 查看 AMIS 应用：
+
+- 首页：`http://localhost:8000/amis/`
+- 登录页：`http://localhost:8000/amis/login/`
+- 应用配置：`http://localhost:8000/amis/config/`
+- 页面配置：`http://localhost:8000/amis/page/{page_path}/`
+
+## 核心组件
+
+amis-python 提供了以下核心组件，用于构建和管理 AMIS 应用：
+
+### 主要组件
+
+| 组件名称 | 用途 |
+|----------|------|
+| `BaseBuilder` | 所有组件的基类，提供基本的序列化功能 |
+| `AmisApiObject` | AMIS API 配置对象，用于定义 API 请求 |
+| `PageBuilder` | 页面构建器，用于创建 AMIS 页面布局 |
+| `AppBuilder` | 应用构建器，用于创建和管理 AMIS 应用 |
+| `AppPageGroupBuilder` | 页面分组构建器，用于组织页面 |
+| `AppPageBuilder` | 应用页面构建器，用于定义应用中的页面 |
 
 ### 组件导入示例
 
@@ -125,24 +138,20 @@ amis-python 按照 AMIS 组件的功能和类型，将组件组织在不同的�
 
 ```python
 # 从 amis_python 直接导入（推荐）
-from amis_python import PageBuilder, FormBuilder, InputTextBuilder
+from amis_python import BaseBuilder, PageBuilder, AppBuilder, register_page
 
 # 从具体模块导入
 from amis_python.builder.layout import PageBuilder
-from amis_python.builder.form import FormBuilder, InputTextBuilder
+from amis_python.builder.app import AppBuilder
 ```
 
 ## 使用注意事项
 
 1. **默认应用注册**：必须调用 `register_default_app()` 函数注册默认应用，否则会出现 "Default amis app not registered" 错误。
 
-2. **分组注册**：页面必须通过分组注册，不能直接注册到应用。可以使用 `register_page_group()` 函数注册分组。
+2. **页面路径**：页面路径必须以 `/` 开头，如 `/home`、`/message/message`。
 
-3. **页面路径**：页面路径必须以 `/` 开头，如 `/home`、`/users/list`。
-
-4. **组件类型**：每个组件必须指定 `type` 字段，使用 Literal 类型确保类型安全。
-
-5. **嵌套组件**：支持嵌套组件，amis-python 会自动递归将嵌套组件转换为符合 AMIS 规范的 JSON。
+3. **API 装饰器顺序**：使用 API 包装装饰器时，建议按照 `@amis_wrap()`、`@amis_paginate()`、`@amis_filter()`、`@amis_search()` 的顺序使用。
 
 ## 依赖说明
 
@@ -179,19 +188,18 @@ amis-python/
 ├── src/                    # 主源码目录
 │   └── amis_python/        # 主要的 Python 包
 │       ├── builder/        # AMIS 组件构建器
-│       │   ├── action/     # 动作组件
 │       │   ├── app/        # 应用组件
-│       │   ├── base.py     # 基础构建器
-│       │   ├── button/     # 按钮组件
-│       │   ├── container/  # 容器组件
-│       │   ├── form/       # 表单组件
-│       │   ├── general/    # 通用组件
 │       │   ├── layout/     # 布局组件
-│       │   └── api.py      # API 构建器
+│       │   ├── api.py      # API 构建器
+│       │   ├── base.py     # 基础构建器
+│       │   ├── event.py    # 事件处理
+│       │   └── utils.py    # 工具函数
 │       ├── static/         # 静态文件
 │       ├── views.py        # Django 视图
 │       ├── urls.py         # Django URL 配置
-│       └── ninja.py        # Django Ninja 集成
+│       ├── registry.py     # 应用和页面注册
+│       ├── ninja_api.py    # Django Ninja 集成
+│       └── middleware.py   # 中间件
 ├── tests/                  # 单元测试目录
 ├── test_django/            # Django 测试项目
 └── README.md               # 项目文档
