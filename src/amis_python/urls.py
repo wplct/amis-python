@@ -2,10 +2,7 @@ from django.urls import path, re_path
 from django.views.static import serve
 import os
 
-from pydantic import BaseModel
-
-from .ninja_api import amis_api
-from .views import get_amis_app_config, get_page_config, amis_index, get_login_config
+from .views import get_amis_app_config, get_page_config, amis_index, get_login_config, login, logout, current_user
 
 # 获取当前应用的静态目录路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -53,52 +50,6 @@ def load_all_amis_configs():
                             except Exception as e:
                                 print(f"  导入 {full_module_name} 失败: {e}")
 
-from django.contrib.auth import authenticate, login as django_login, logout as django_logout
-from django.http import HttpRequest
-
-from ninja import Form, Body
-from amis_python import amis_api
-
-class LoginSchema(BaseModel):
-    username: str
-    password: str
-
-@amis_api.post("/login",auth=None)
-def login(request: HttpRequest, data:LoginSchema=Body()):
-    """
-    用户登录API
-    """
-    # 验证用户名和密码
-    print("正在验证用户名和密码...")
-    user = authenticate(request, username=data.username, password=data.password)
-    if user is not None:
-        # 登录成功，设置session
-        django_login(request, user)
-        return {"username": user.username}
-    else:
-        # 登录失败
-        raise ValueError("用户名或密码错误")
-
-
-@amis_api.post("/logout")
-def logout(request: HttpRequest):
-    """
-    用户登出API
-    """
-    django_logout(request)
-    return {"status": 0, "msg": "登出成功"}
-
-
-@amis_api.get("/current_user")
-def current_user(request: HttpRequest):
-    """
-    获取当前登录用户信息API
-    """
-    if request.user.is_authenticated:
-        return {"status": 0, "msg": "", "data": {"username": request.user.username}}
-    else:
-        return {"status": 1, "msg": "未登录"}
-
 load_all_amis_configs()
 
 urlpatterns = [
@@ -111,7 +62,9 @@ urlpatterns = [
     # 页面配置路由（动态路由，匹配任意页面路径）
     path('page/<path:page_path>', get_page_config, name='get_page_config'),
     # API路由，必须在静态文件路由之前
-    path('api/', amis_api.urls),
+    path('api/login/', login, name='login'),
+    path('api/logout/', logout, name='logout'),
+    path('api/current_user/', current_user, name='current_user'),
     # 静态文件路由，处理静态文件请求
     re_path(r'^(?P<path>.*)$', serve, {
         'document_root': amis_static_dir,

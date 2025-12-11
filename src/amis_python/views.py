@@ -1,5 +1,8 @@
 from django.http import JsonResponse, HttpResponse
 import os
+from django.contrib.auth import authenticate, login as django_login, logout as django_logout
+from django.views.decorators.csrf import csrf_exempt
+import json
 from .registry import get_default_app, get_page
 from .login_config import get_login_page
 
@@ -59,3 +62,55 @@ def get_login_config(request) -> JsonResponse:
     """
     login_page = get_login_page()
     return JsonResponse(login_page.to_schema())
+
+
+@csrf_exempt
+def login(request) -> JsonResponse:
+    """
+    用户登录API
+    """
+    if request.method == 'POST':
+        try:
+            # 解析请求体
+            data = json.loads(request.body)
+            username = data.get('username')
+            password = data.get('password')
+            
+            # 验证用户名和密码
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                # 登录成功，设置session
+                django_login(request, user)
+                return JsonResponse({"username": user.username})
+            else:
+                # 登录失败
+                return JsonResponse({"status": 1, "msg": "用户名或密码错误"}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({"status": 1, "msg": "无效的请求体"}, status=400)
+        except Exception as e:
+            return JsonResponse({"status": 1, "msg": str(e)}, status=400)
+    return JsonResponse({"status": 1, "msg": "仅支持POST请求"}, status=405)
+
+
+@csrf_exempt
+def logout(request) -> JsonResponse:
+    """
+    用户登出API
+    """
+    if request.method == 'POST':
+        django_logout(request)
+        return JsonResponse({"status": 0, "msg": "登出成功"})
+    return JsonResponse({"status": 1, "msg": "仅支持POST请求"}, status=405)
+
+
+@csrf_exempt
+def current_user(request) -> JsonResponse:
+    """
+    获取当前登录用户信息API
+    """
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            return JsonResponse({"status": 0, "msg": "", "data": {"username": request.user.username}})
+        else:
+            return JsonResponse({"status": 1, "msg": "未登录"})
+    return JsonResponse({"status": 1, "msg": "仅支持GET请求"}, status=405)
