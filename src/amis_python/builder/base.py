@@ -50,3 +50,20 @@ class BaseBuilder:
             return {k: self._serialize_value(v, by_alias, exclude_none) for k, v in value.items()}
         else:
             return value
+
+from pydantic import BaseModel as PydanticBaseModel, ConfigDict
+
+
+def camelize(snake_str: str) -> str:
+    """将 snake_case 转换为 camelCase，例如 label_width → labelWidth"""
+    components = snake_str.split('_')
+    return components[0] + ''.join(word.capitalize() for word in components[1:])
+
+class BaseModel(PydanticBaseModel):
+    """amis 组件通用基类，统一处理序列化行为"""
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        populate_by_name=True,
+    )
+    def model_dump(self,exclude_none=True,by_alias=True,**kwargs):
+        return super().model_dump(exclude_none=exclude_none,by_alias=by_alias,**kwargs)

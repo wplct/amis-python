@@ -91,7 +91,6 @@ def get_login_page() -> dict:
             }
         ]
     }
-
     return login_page
 
 
