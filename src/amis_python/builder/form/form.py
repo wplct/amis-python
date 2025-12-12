@@ -140,6 +140,3 @@ class Form(BaseModel):
 
     # ==================== 事件相关（预留） ====================
     on_event: Optional[Dict[str, Any]] = Field(None, description="事件动作配置，支持 onSubmitSuccess、onSubmitFail 等自定义动作")
-
-    # ==================== 备注字段（文档中未列但常见） ====================
-    id: Optional[str] = Field(None, description="组件唯一 id，主要用于日志查看")
