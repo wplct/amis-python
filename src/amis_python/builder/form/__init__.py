@@ -6,3 +6,5 @@ from .select import Select
 from .input_password import InputPassword
 from .input_group import InputGroup
 from .input_image import InputImage
+from .hidden import Hidden
+from .input_file import InputFile

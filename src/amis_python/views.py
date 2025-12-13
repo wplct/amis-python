@@ -245,9 +245,6 @@ class UploadView(View):
             'msg': '上传成功',
             'data': {
                 'value': obj.file.url,
-                'name': obj.name,
-                'size': obj.size,
-                'url': obj.file.url,
-                'key': str(obj.key)
+                'id': obj.id,
             }
         })

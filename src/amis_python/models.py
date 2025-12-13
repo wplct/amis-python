@@ -27,6 +27,11 @@ class File(models.Model):
     # 可选：关联上传者
     uploader = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
+    @property
+    def url(self):
+        return self.file.url
+
+
     class Meta:
         db_table = 'files'
         verbose_name = 'File'
