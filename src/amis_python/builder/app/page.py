@@ -11,14 +11,10 @@ class AppPageBuilder(BaseModel):
     表示一个应用中的独立页面（可出现在导航菜单中）。
     对应 AMIS pages 配置中的单个页面项（非分组）。
     """
-    model_config = {
-        "arbitrary_types_allowed": True
-    }
-    
     type: Literal["appPage"] = Field("appPage", description="组件类型")
     label: Optional[str] = Field(None, description="页面在导航菜单中显示的名称")
     url: Optional[str] = Field(None, description="页面路由路径")
-    schema: Optional[PageBuilder] = Field(None, description="页面配置")
+    page_schema: Optional[PageBuilder] = Field(None, alias="schema", description="页面配置")
     icon: Optional[str] = Field(None, description="菜单图标，比如：fa fa-file")
     schema_api: Optional[Union[str, dict]] = Field(None, description="如果想通过接口拉取，请配置。返回路径为 json>data")
     link: Optional[str] = Field(None, description="如果想配置个外部链接菜单，只需要配置 link 即可")
@@ -29,7 +25,7 @@ class AppPageBuilder(BaseModel):
     class_name: Optional[str] = Field(None, description="菜单类名")
     children: Optional[List["AppPageBuilder"]] = Field(None, description="分组内包含的页面或嵌套分组")
     # ---- 辅助字段 ----
-    path: Optional[str] = Field(None, description="页面路径,对于Amis没用")
+    path: Optional[str] = Field(None, description="页面路径")
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -8,7 +8,7 @@ class Select(FormItem):
     """
     amis Select 选择器组件
     对应组件类型: select
-    文档地址: https://aisuda.bce.baidu.com/amis/zh-CN/components/form/select
+    文档地址: docs/zh-CN/components/form/select.md
     """
 
     # ==================== 基本属性 ====================

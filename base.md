@@ -102,7 +102,7 @@ class XXX(BaseModel):
     """
     amis XXX 组件完整 Pydantic 模型
     对应组件类型: type: "xxx"
-    文档地址: https://aisuda.bce.baidu.com/amis/zh-CN/components/xxx/index
+    文档地址: /docs/zh-CN/components/xxx.md (你要确认好并读取)
     """
 
     type: Literal["xxx"] = Field("xxx", description="指定为 xxx 组件")

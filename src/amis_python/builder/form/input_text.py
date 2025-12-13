@@ -8,7 +8,7 @@ class InputText(FormItem):
     """
     amis InputText 输入框组件
     对应组件类型: input-text
-    文档地址: https://aisuda.bce.baidu.com/amis/zh-CN/components/form/input-text
+    文档地址: docs/zh-CN/components/form/input-text.md
     """
 
     # ==================== 基本属性 ====================

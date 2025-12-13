@@ -63,7 +63,7 @@ class Form(BaseModel):
     """
     amis Form 表单组件完整 Pydantic 模型
     对应组件类型: type: "form"
-    文档地址: https://aisuda.bce.baidu.com/amis/zh-CN/components/form/index
+    文档地址: docs/zh-CN/components/form/index.md
     """
 
     type: Literal["form"] = Field("form", description="指定为 form 组件")

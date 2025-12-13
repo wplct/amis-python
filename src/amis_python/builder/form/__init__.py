@@ -3,3 +3,4 @@ from .form_item import FormItem
 from .input_text import InputText
 from .input_number import InputNumber
 from .select import Select
+from .input_password import InputPassword

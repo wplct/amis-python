@@ -8,7 +8,7 @@ class InputNumber(FormItem):
     """
     amis InputNumber 数字输入框组件
     对应组件类型: input-number
-    文档地址: https://aisuda.bce.baidu.com/amis/zh-CN/components/form/input-number
+    文档地址: docs/zh-CN/components/form/input-number.md
     """
 
     # ==================== 基本属性 ====================

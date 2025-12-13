@@ -22,10 +22,6 @@ class AppBuilder(BaseModel):
             ]
         )
     """
-    model_config = {
-        "arbitrary_types_allowed": True
-    }
-    
     type: Literal["app"] = Field("app", description="组件类型")
 
     # === 基础信息 ===

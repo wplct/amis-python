@@ -8,7 +8,7 @@ class FormItem(BaseModel):
     """
     amis FormItem 普通表单项
     对应组件类型: 派生自 FormItem 的各种表单项类型
-    文档地址: https://aisuda.bce.baidu.com/amis/zh-CN/components/form/formitem
+    文档地址: docs/zh-CN/components/form/formitem.md
     """
 
     # ==================== 基本属性 ====================

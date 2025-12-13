@@ -3,7 +3,7 @@
 Pydantic 基础构造器模块，为所有 amis 节点提供统一的序列化能力。
 
 核心功能：
-- 所有 amis 组件继承自 BaseBuilder；
+- 所有 amis 组件继承自 BaseModel；
 - 自动递归将嵌套的组件转换为符合 amis 规范的 JSON 字典；
 - 强制每个组件必须声明 type 字段（由子类以 Literal 形式提供）。
 

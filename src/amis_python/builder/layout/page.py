@@ -18,10 +18,6 @@ class PageBuilder(BaseModel):
             ]
         )
     """
-    model_config = {
-        "arbitrary_types_allowed": True
-    }
-    
     type: Literal["page"] = Field("page", description="指定为 Page 组件")
     
     # === 基本信息 ===
