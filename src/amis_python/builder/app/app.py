@@ -2,13 +2,13 @@
 from typing import Any, Dict, List, Union, Optional, Literal
 
 from ..api import AmisApiObject
-from ..base import BaseBuilder
+from ..base import BaseModel, Field
 from ..layout.page import PageBuilder
 from .group import AppPageGroupBuilder
 from .page import AppPageBuilder
 
 
-class AppBuilder(BaseBuilder):
+class AppBuilder(BaseModel):
     """
     构建整个 AMIS 应用的根配置对象，对应 <App> 组件。
     参考文档：https://aisuda.bce.baidu.com/amis/zh-CN/components/app
@@ -22,36 +22,42 @@ class AppBuilder(BaseBuilder):
             ]
         )
     """
-    type: Literal["app"] = "app"
+    model_config = {
+        "arbitrary_types_allowed": True
+    }
+    
+    type: Literal["app"] = Field("app", description="组件类型")
 
     # === 基础信息 ===
-    api: Optional[Union[str, AmisApiObject]] = None  # 动态拉取应用配置的接口。可以是 URL 字符串，或结构化 API 对象（支持 method/data/headers 等）
-    brand_name: str = "amis-python"  # 应用左上角的品牌名称
-    logo: Optional[str] = None  # 品牌 Logo 图片 URL，显示在品牌名左侧
-    class_name: Optional[str] = None  # CSS 类名
+    api: Optional[Union[str, AmisApiObject]] = Field(None, description="动态拉取应用配置的接口。可以是 URL 字符串，或结构化 API 对象（支持 method/data/headers 等）")
+    brand_name: Optional[str] = Field(None, description="应用左上角的品牌名称")
+    logo: Optional[str] = Field(None, description="品牌 Logo 图片 URL，显示在品牌名左侧")
+    class_name: Optional[str] = Field(None, description="CSS 类名")
 
     # === 布局控制 ===
-    affix_header: bool = True  # 是否固定顶部栏（默认 true）
-    aside_fixed: bool = True  # 是否固定侧边栏（默认 true）
-    aside_folded: bool = False  # 侧边栏是否默认折叠（默认 false）
+    affix_header: Optional[bool] = Field(None, description="是否固定顶部栏")
+    aside_fixed: Optional[bool] = Field(None, description="是否固定侧边栏")
+    aside_folded: Optional[bool] = Field(None, description="侧边栏是否默认折叠")
 
     # === 自定义区域 ===
-    header: Optional[Union[str, dict,list]] = None  # 顶部区域内容（支持 HTML 或 amis schema）
-    toolbar: Optional[Union[str, dict]] = None  # 顶部右侧工具栏内容（常用于放置通知、用户头像等）
-    aside_before: Optional[Union[str, dict]] = None  # 页面菜单上前面区域
-    aside_after: Optional[Union[str, dict]] = None  # 页面菜单下前面区域
-    footer: Optional[Union[str, dict]] = None  # 底部区域内容
+    header: Optional[Union[str, dict, list]] = Field(None, description="顶部区域内容（支持 HTML 或 amis schema）")
+    toolbar: Optional[Union[str, dict]] = Field(None, description="顶部右侧工具栏内容（常用于放置通知、用户头像等）")
+    aside_before: Optional[Union[str, dict]] = Field(None, description="页面菜单上前面区域")
+    aside_after: Optional[Union[str, dict]] = Field(None, description="页面菜单下前面区域")
+    footer: Optional[Union[str, dict]] = Field(None, description="底部区域内容")
 
     # === 主题与国际化 ===
-    css_vars: Optional[Dict[str, str]] = None  # 自定义 CSS 变量，用于主题定制（如 {'--primary': '#1890ff'}）
-    locale: Optional[str] = None  # 语言区域设置，如 'zh-CN'、'en-US'（需配合 localeProvider 使用）
+    css_vars: Optional[Dict[str, str]] = Field(None, description="自定义 CSS 变量，用于主题定制（如 {'--primary': '#1890ff'}）")
+    locale: Optional[str] = Field(None, description="语言区域设置，如 'zh-CN'、'en-US'（需配合 localeProvider 使用）")
 
     # === 页面结构 ===
-    pages: List[AppPageGroupBuilder] = []  # 应用的页面结构，顶层只允许放置分组
+    pages: Optional[List[AppPageGroupBuilder]] = Field(None, description="应用的页面结构，顶层只允许放置分组")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # 添加默认没有名字的分组
+        if self.pages is None:
+            self.pages = []
         self.pages.append(AppPageGroupBuilder(label="", children=[]))
 
     def register_page(

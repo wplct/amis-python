@@ -1,32 +1,40 @@
 # from __future__ import annotations
 from typing import Any, Dict, List, Union, Optional, Literal
 
-from ..base import BaseBuilder
+from ..base import BaseModel, Field
 from ..layout.page import PageBuilder
 from ..api import AmisApiObject
 
 
-class AppPageBuilder(BaseBuilder):
+class AppPageBuilder(BaseModel):
     """
     表示一个应用中的独立页面（可出现在导航菜单中）。
     对应 AMIS pages 配置中的单个页面项（非分组）。
     """
-    type: Literal["appPage"] = "appPage"
-    label: Optional[str] = None  # 页面在导航菜单中显示的名称
-    url: Optional[str] = None  # 页面路由路径
-    schema: Optional[PageBuilder] = None  # 页面配置
-    icon: Optional[str] = None  # 菜单图标，比如：fa fa-file
-    schema_api: Optional[Union[str, dict]] = None  # 如果想通过接口拉取，请配置。返回路径为 json>data
-    link: Optional[str] = None  # 如果想配置个外部链接菜单，只需要配置 link 即可
-    redirect: Optional[str] = None  # 跳转，当命中当前页面时，跳转到目标页面
-    rewrite: Optional[str] = None  # 改成渲染其他路径的页面，这个方式页面地址不会发生修改
-    is_default_page: Optional[bool] = None  # 当你需要自定义 404 页面的时候有用
-    visible: Optional[bool] = None  # 有些页面可能不想出现在菜单中，可以配置成 false
-    class_name: Optional[str] = None  # 菜单类名
-    children: Optional[List["AppPageBuilder"]] = None  # 分组内包含的页面或嵌套分组
+    model_config = {
+        "arbitrary_types_allowed": True
+    }
+    
+    type: Literal["appPage"] = Field("appPage", description="组件类型")
+    label: Optional[str] = Field(None, description="页面在导航菜单中显示的名称")
+    url: Optional[str] = Field(None, description="页面路由路径")
+    schema: Optional[PageBuilder] = Field(None, description="页面配置")
+    icon: Optional[str] = Field(None, description="菜单图标，比如：fa fa-file")
+    schema_api: Optional[Union[str, dict]] = Field(None, description="如果想通过接口拉取，请配置。返回路径为 json>data")
+    link: Optional[str] = Field(None, description="如果想配置个外部链接菜单，只需要配置 link 即可")
+    redirect: Optional[str] = Field(None, description="跳转，当命中当前页面时，跳转到目标页面")
+    rewrite: Optional[str] = Field(None, description="改成渲染其他路径的页面，这个方式页面地址不会发生修改")
+    is_default_page: Optional[bool] = Field(None, description="当你需要自定义 404 页面的时候有用")
+    visible: Optional[bool] = Field(None, description="有些页面可能不想出现在菜单中，可以配置成 false")
+    class_name: Optional[str] = Field(None, description="菜单类名")
+    children: Optional[List["AppPageBuilder"]] = Field(None, description="分组内包含的页面或嵌套分组")
     # ---- 辅助字段 ----
-    path: Optional[str] = None  # 页面路径,对于Amis没用
-    _lazy_schema: Optional[PageBuilder] = None  # 懒加载页面
+    path: Optional[str] = Field(None, description="页面路径,对于Amis没用")
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # 使用普通实例变量，而不是 Pydantic 字段，因为 Pydantic 不允许字段名以下划线开头
+        self._lazy_schema = None
 
     def get_page(self, path: str) -> Optional[PageBuilder]:
         """

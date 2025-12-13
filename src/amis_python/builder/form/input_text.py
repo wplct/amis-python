@@ -1,7 +1,7 @@
 from typing import Optional, Literal, Dict, Any, Union, List
 from pydantic import Field
 
-from amis_python.builder.form.formitem import FormItem
+from amis_python.builder.form.form_item import FormItem
 
 
 class InputText(FormItem):
