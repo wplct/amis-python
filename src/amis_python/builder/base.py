@@ -10,10 +10,15 @@ Pydantic 基础构造器模块，为所有 amis 节点提供统一的序列化�
 注意：type 字段不再通过抽象属性强制，而是作为 Pydantic 模型字段，
       由子类使用 Literal 显式定义，确保序列化能正确进行。
 """
+import webbrowser
+import tempfile
+import os
+import shutil
 from typing import Any, Dict, List, Optional, Union, get_origin, get_args, Literal
 
 
 from .utils import camelize
+
 
 
 
@@ -66,3 +71,48 @@ class BaseModel(PydanticBaseModel):
         self.on_event[event_name]['actions'].append(action)
         
         return self
+    
+    def show(self):
+        """
+        在浏览器中预览当前 AMIS 组件的渲染效果
+        """
+        # 将当前模型转换为 JSON 字符串
+        amis_json = self.model_dump_json()
+        
+        # 创建临时目录
+        temp_dir = tempfile.mkdtemp()
+        
+        # 复制 AMIS 静态资源到临时目录
+        amis_static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static', 'amis')
+        
+        # 复制整个 AMIS 静态目录到临时目录
+        # 先创建 amis 子目录
+        temp_amis_dir = os.path.join(temp_dir, 'amis')
+        os.makedirs(temp_amis_dir, exist_ok=True)
+        
+        # 复制所有文件和子目录
+        for item in os.listdir(amis_static_dir):
+            src_item = os.path.join(amis_static_dir, item)
+            dest_item = os.path.join(temp_amis_dir, item)
+            if os.path.isdir(src_item):
+                shutil.copytree(src_item, dest_item)
+            else:
+                shutil.copy2(src_item, dest_item)
+        
+        # 生成临时 HTML 文件
+        temp_html_path = os.path.join(temp_dir, 'index.html')
+        
+        # 读取预览模板内容
+        preview_html_path = os.path.join(amis_static_dir, 'preview.html')
+        with open(preview_html_path, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        # 替换模板中的 AMIS_JSON 占位符
+        modified_html = html_content.replace('{{AMIS_JSON}}', amis_json)
+        
+        # 保存修改后的 HTML 文件
+        with open(temp_html_path, 'w', encoding='utf-8') as f:
+            f.write(modified_html)
+        
+        # 在浏览器中打开临时 HTML 文件
+        webbrowser.open('file://' + temp_html_path)
