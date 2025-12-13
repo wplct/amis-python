@@ -34,6 +34,7 @@ def amis_wrap():
     def decorator(view_func: Callable) -> Callable:
         @wraps(view_func)
         def wrapper(request: HttpRequest, *args, **kwargs) -> ApiResponse:
+            print(request.method)
             result = view_func(request, *args, **kwargs)
             return success_response(data=result)
 

@@ -1,4 +1,4 @@
-from typing import Type, Literal, Optional, Union, List
+from typing import Type, Literal, Optional, Union, List, get_origin, get_args
 
 from pydantic import BaseModel as PydanticBaseModel, Field, ConfigDict
 from pydantic.fields import FieldInfo
@@ -12,14 +12,14 @@ class AmisExtra(PydanticBaseModel):
     专门描述 amis 在 json_schema_extra 里可能出现的字段。
     想加别的 amis 属性继续往这里堆即可。
     """
-    type: Optional[Literal["password", "email", "url"]] = None
+    type: Optional[Literal["password", "email", "url",'image']] = None
 
 
 class User(PydanticBaseModel):
     username: str = Field(..., title="用户名")
     password: str = Field(..., title="密码", json_schema_extra=AmisExtra(type="password").model_dump())
     email: str = Field(..., title="邮箱", json_schema_extra=AmisExtra(type="email").model_dump())
-    age: int = Field(..., title="年龄")
+    age: int = Field(..., description="年龄")
     phone: str
     address: str
 
@@ -35,13 +35,19 @@ class SchemaFormBuild:
     def get_field_type(self, field_info: FieldInfo) -> Union[str, None]:
         if field_info.json_schema_extra and 'type' in field_info.json_schema_extra:
             return field_info.json_schema_extra['type']
-        if issubclass(field_info.annotation, int):
+        ann = field_info.annotation
+        if get_origin(ann) is Union:
+            args = [a for a in get_args(ann) if a is not type(None)]
+            if not args:  # 全是 None，理论上不会走到这里
+                return None
+            ann = args[0]
+        if issubclass(ann, int):
             return 'number'
         return None
 
     def field_to_input(self, field_name: str, field_info: FieldInfo) -> BaseModel:
         input_type = self.get_field_type(field_info)
-        title = field_info.title or field_name
+        title = field_info.title or field_info.description or field_name
 
         input_base_kwargs = {
             'name': field_name,
@@ -62,7 +68,9 @@ class SchemaFormBuild:
         title = self.schema.model_config.get("title")
         return Form(
             title=title,
-            body=self.get_form_items()
+            body=self.get_form_items(),
+            wrap_with_panel=False,
+            actions=[]
         )
 
 

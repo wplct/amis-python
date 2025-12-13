@@ -5,3 +5,4 @@ from .input_number import InputNumber
 from .select import Select
 from .input_password import InputPassword
 from .input_group import InputGroup
+from .input_image import InputImage
