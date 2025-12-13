@@ -126,7 +126,7 @@ amis-python 提供了以下核心组件，用于构建和管理 AMIS 应用：
 | 组件名称 | 用途 |
 |----------|------|
 | `BaseBuilder` | 所有组件的基类，提供基本的序列化功能 |
-| `AmisApiObject` | AMIS API 配置对象，用于定义 API 请求 |
+| `Api` | AMIS API 配置对象，用于定义 API 请求 |
 | `PageBuilder` | 页面构建器，用于创建 AMIS 页面布局 |
 | `AppBuilder` | 应用构建器，用于创建和管理 AMIS 应用 |
 | `AppPageGroupBuilder` | 页面分组构建器，用于组织页面 |
@@ -138,11 +138,61 @@ amis-python 提供了以下核心组件，用于构建和管理 AMIS 应用：
 
 ```python
 # 从 amis_python 直接导入（推荐）
-from amis_python import BaseBuilder, PageBuilder, AppBuilder, register_page
+from amis_python import BaseBuilder, Api, PageBuilder, AppBuilder, register_page
 
 # 从具体模块导入
 from amis_python.builder.layout import PageBuilder
 from amis_python.builder.app import AppBuilder
+from amis_python.builder.api import Api
+```
+
+### Api 组件使用示例
+
+使用 `Api` 组件定义 API 请求配置：
+
+```python
+from amis_python import Api
+
+# 创建一个 GET 请求 API 配置
+api_config = Api(
+    url="/api/messages",
+    method="get",
+    cache=3000,  # 缓存 3 秒
+    headers={
+        "Authorization": "Bearer ${token}"
+    }
+)
+
+# 创建一个 POST 请求 API 配置
+post_api = Api(
+    url="/api/messages",
+    method="post",
+    data_type="json",
+    data={
+        "title": "${title}",
+        "content": "${content}"
+    }
+)
+```
+
+### 页面构建示例
+
+使用 `PageBuilder` 和 `Api` 组件创建页面：
+
+```python
+from amis_python import PageBuilder, Api
+
+# 创建一个带有初始数据 API 的页面
+page = PageBuilder(
+    title="消息列表",
+    init_api=Api(
+        url="/api/messages",
+        method="get"
+    ),
+    body=[
+        # 页面内容组件
+    ]
+)
 ```
 
 ## 使用注意事项

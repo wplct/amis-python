@@ -5,6 +5,7 @@ from .layout import *
 from .action import Action
 from .button import Button
 from .event_action import EventAction
+from .tabs import Tabs, TabsItem, TabsMode, IconPosition, SidePosition
 
 __all__ = [
     # 基础组件
@@ -16,5 +17,7 @@ __all__ = [
     # 交互组件
     'Action', 'Button',
     # 事件动作组件
-    'EventAction'
+    'EventAction',
+    # Tabs组件
+    'Tabs', 'TabsItem', 'TabsMode', 'IconPosition', 'SidePosition'
 ]
