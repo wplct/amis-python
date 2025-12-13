@@ -2,7 +2,7 @@
 from typing import Any, Dict, List, Union, Optional, Literal
 
 from ..base import BaseModel, Field
-from ..layout.page import PageBuilder
+from ..layout.page import Page
 from ..api import Api
 
 
@@ -14,7 +14,7 @@ class AppPageBuilder(BaseModel):
     type: Literal["appPage"] = Field("appPage", description="组件类型")
     label: Optional[str] = Field(None, description="页面在导航菜单中显示的名称")
     url: Optional[str] = Field(None, description="页面路由路径")
-    page_schema: Optional[PageBuilder] = Field(None, alias="schema", description="页面配置")
+    page_schema: Optional[Page] = Field(None, alias="schema", description="页面配置")
     icon: Optional[str] = Field(None, description="菜单图标，比如：fa fa-file")
     schema_api: Optional[Union[str, dict]] = Field(None, description="如果想通过接口拉取，请配置。返回路径为 json>data")
     link: Optional[str] = Field(None, description="如果想配置个外部链接菜单，只需要配置 link 即可")
@@ -32,7 +32,7 @@ class AppPageBuilder(BaseModel):
         # 使用普通实例变量，而不是 Pydantic 字段，因为 Pydantic 不允许字段名以下划线开头
         self._lazy_schema = None
 
-    def get_page(self, path: str) -> Optional[PageBuilder]:
+    def get_page(self, path: str) -> Optional[Page]:
         """
         根据路径获取已注册的页面
         """
@@ -70,6 +70,6 @@ class AppPageBuilder(BaseModel):
         else:
             raise ValueError(f"path 注册错误 {path} {self.path}")
 
-    def set_page_schema(self, schema: PageBuilder):
+    def set_page_schema(self, schema: Page):
         self._lazy_schema = schema
 

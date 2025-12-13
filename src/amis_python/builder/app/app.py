@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Union, Optional, Literal
 
 from ..api import Api
 from ..base import BaseModel, Field
-from ..layout.page import PageBuilder
+from ..layout.page import Page
 from .group import AppPageGroupBuilder
 from .page import AppPageBuilder
 
@@ -60,7 +60,7 @@ class AppBuilder(BaseModel):
             self,
             label: str,
             path: str,
-            page: Optional[PageBuilder] = None,
+            page: Optional[Page] = None,
             group_label: Optional[str] = ''
     ) -> AppPageBuilder:
         """
@@ -115,7 +115,7 @@ class AppBuilder(BaseModel):
                 return group
         raise ValueError(f"Group '{label}' does not exist.")
 
-    def get_page(self, path: str) -> PageBuilder:
+    def get_page(self, path: str) -> Page:
         """
         根据路径获取已注册的页面
         """

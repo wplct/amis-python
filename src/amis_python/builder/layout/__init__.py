@@ -1,9 +1,9 @@
-from .page import PageBuilder
+from .page import Page
 from .container import Container
 from .panel import Panel
 
 __all__ = [
-    'PageBuilder',
+    'Page',
     'Container',
     'Panel'
 ]

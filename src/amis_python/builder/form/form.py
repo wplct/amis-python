@@ -3,6 +3,7 @@ from enum import Enum
 
 from pydantic import Field
 
+from amis_python import Api
 from amis_python.builder import BaseModel
 
 
@@ -84,7 +85,7 @@ class Form(BaseModel):
     panel_class_name: Optional[str] = Field(None, description="外层 panel 的 className")
 
     # ==================== API 配置 ====================
-    api: Optional[Union[str, Dict[str, Any]]] = Field(None, description="保存接口，支持字符串 URL 字符串或完整 API 对象（含 method、url、data 等）")
+    api: Optional[Union[str, Dict[str, Any],Api]] = Field(None, description="保存接口，支持字符串 URL 字符串或完整 API 对象（含 method、url、data 等）")
     init_api: Optional[Union[str, Dict[str, Any]]] = Field(None, description="表单初始化接口，用于编辑场景回填数据")
     init_async_api: Optional[Union[str, Dict[str, Any]]] = Field(None, description="异步初始化接口（与 initApi 配合使用）")
     init_finished_field: Optional[str] = Field(None, description="初始化完成字段名，默认 'finished'")

@@ -2,7 +2,7 @@
 from typing import Any, Dict, List, Union, Optional, Literal
 
 from ..base import BaseModel, Field
-from ..layout.page import PageBuilder
+from ..layout.page import Page
 from .page import AppPageBuilder
 
 
@@ -48,7 +48,7 @@ class AppPageGroupBuilder(BaseModel):
 
         raise ValueError(f"未找到页面：{path}")
 
-    def get_page(self, path: str) -> Optional[PageBuilder]:
+    def get_page(self, path: str) -> Optional[Page]:
         """
         根据路径获取已注册的页面
         """

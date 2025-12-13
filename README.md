@@ -138,10 +138,10 @@ amis-python 提供了以下核心组件，用于构建和管理 AMIS 应用：
 
 ```python
 # 从 amis_python 直接导入（推荐）
-from amis_python import BaseBuilder, Api, PageBuilder, AppBuilder, register_page
+from amis_python import BaseBuilder, Api, Page, AppBuilder, register_page
 
 # 从具体模块导入
-from amis_python.builder.layout import PageBuilder
+from amis_python.builder.layout import Page
 from amis_python.builder.app import AppBuilder
 from amis_python.builder.api import Api
 ```
@@ -180,10 +180,10 @@ post_api = Api(
 使用 `PageBuilder` 和 `Api` 组件创建页面：
 
 ```python
-from amis_python import PageBuilder, Api
+from amis_python import Page, Api
 
 # 创建一个带有初始数据 API 的页面
-page = PageBuilder(
+page = Page(
     title="消息列表",
     init_api=Api(
         url="/api/messages",

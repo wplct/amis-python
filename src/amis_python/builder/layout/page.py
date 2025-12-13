@@ -5,13 +5,13 @@ from ..base import BaseModel, Field
 from ..api import Api
 
 
-class PageBuilder(BaseModel):
+class Page(BaseModel):
     """
     构建 AMIS 页面的配置对象，对应 <Page> 组件。
     参考文档：https://aisuda.bce.baidu.com/amis/zh-CN/components/page
     
     示例：
-        page = PageBuilder(
+        page = Page(
             title="首页",
             body=[
                 # 页面内容组件

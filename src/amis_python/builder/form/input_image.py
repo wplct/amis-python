@@ -1,6 +1,7 @@
 from typing import Optional, Literal, Dict, Any, Union
 from pydantic import Field
 
+from amis_python import Api
 from amis_python.builder.form.form_item import FormItem
 
 
@@ -15,7 +16,7 @@ class InputImage(FormItem):
     type: Literal["input-image"] = Field("input-image", description="指定为图片上传组件")
 
     # ==================== 上传相关属性 ====================
-    receiver: Optional[Union[str, Dict[str, Any]]] = Field(None, description="上传文件接口")
+    receiver: Optional[Union[str, Dict[str, Any],Api]] = Field(None, description="上传文件接口")
     accept: Optional[str] = Field(None, description="支持的图片类型格式，请配置此属性为图片后缀，例如'.jpg,.png'，默认值为'.jpeg,.jpg,.png,.gif'")
     capture: Optional[str] = Field(None, description="用于控制 input[type=file] 标签的 capture 属性，在移动端可控制输入来源")
     max_size: Optional[int] = Field(None, description="默认没有限制，当设置后，文件大小大于此值将不允许上传。单位为B")

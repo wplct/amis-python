@@ -1,11 +1,19 @@
+import hashlib
+import uuid
+
+from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 from django.http import JsonResponse, HttpResponse
 import os
 from django.contrib.auth import authenticate, login as django_login, logout as django_logout
+from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 import json
 
-from . import PageBuilder
+from . import Page
 from .builder.layout import Container, Panel
+
 from .registry import get_default_app, get_page
 from .builder.form.form import Form
 from .builder.form.input_text import InputText
@@ -61,12 +69,12 @@ def get_login_page() -> dict:
             }
         }
     )
-    
+
     # 将对象转换为字典
     login_form = login_form.model_dump()
 
     # 创建登录页面
-    login_page = PageBuilder(
+    login_page = Page(
         title="登录",
         body=[
             Container(
@@ -94,7 +102,7 @@ def get_login_page() -> dict:
             )
         ]
     )
-    
+
     # 将对象转换为字典
     return login_page.model_dump()
 
@@ -112,7 +120,7 @@ def get_amis_app_config(request) -> JsonResponse:
     # 检查用户是否已登录
     if not request.user.is_authenticated:
         return JsonResponse({"error": "未登录"}, status=401)
-    
+
     if get_default_app() is None:
         return JsonResponse({"error": "Default amis app not registered"}, status=500)
     return JsonResponse(get_default_app().model_dump())
@@ -125,10 +133,11 @@ def get_page_config(request, page_path: str) -> JsonResponse:
     # 检查用户是否已登录
     if not request.user.is_authenticated:
         return JsonResponse({"error": "未登录"}, status=401)
-    
+
     page_path = '/' + page_path
     page = get_page(page_path)
     return JsonResponse(page)
+
 
 def amis_index(request) -> HttpResponse:
     """
@@ -138,12 +147,12 @@ def amis_index(request) -> HttpResponse:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     # 构建 index.html 文件的路径
     index_path = os.path.join(current_dir, 'static', 'amis', 'index.html')
-    
+
     # 如果文件存在，直接返回文件内容
     if os.path.exists(index_path):
         with open(index_path, 'r', encoding='utf-8') as f:
             return HttpResponse(f.read(), content_type='text/html')
-    
+
     # 否则返回 404
     return HttpResponse(f"Index.html not found at {index_path}", status=404)
 
@@ -167,7 +176,7 @@ def login(request) -> JsonResponse:
             data = json.loads(request.body)
             username = data.get('username')
             password = data.get('password')
-            
+
             # 验证用户名和密码
             user = authenticate(request, username=username, password=password)
             if user is not None:
@@ -206,3 +215,39 @@ def current_user(request) -> JsonResponse:
         else:
             return JsonResponse({"status": 1, "msg": "未登录"})
     return JsonResponse({"status": 1, "msg": "仅支持GET请求"}, status=405)
+
+
+@method_decorator(login_required, name='dispatch')
+class UploadView(View):
+    http_method_names = ['post']
+
+    def post(self, request):
+        from amis_python.models import File
+
+        uploaded = request.FILES.get('file')
+        if not uploaded:
+            return JsonResponse({'error': 'missing file'}, status=400)
+
+        # 先建实例
+        obj = File(
+            key=str(uuid.uuid4()),
+            name=uploaded.name,
+            size=uploaded.size,
+            type=uploaded.content_type or 'application/octet-stream',
+            uploader=request.user
+        )
+        # 把文件挂上去；upload_to 会拿到 obj.uuid 去拼文件名
+        obj.file = uploaded
+        obj.save()
+
+        return JsonResponse({
+            'status': 0,
+            'msg': '上传成功',
+            'data': {
+                'value': obj.file.url,
+                'name': obj.name,
+                'size': obj.size,
+                'url': obj.file.url,
+                'key': str(obj.key)
+            }
+        })

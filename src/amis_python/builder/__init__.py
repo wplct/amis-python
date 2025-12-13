@@ -11,7 +11,7 @@ __all__ = [
     # 基础组件
     'Api','BaseModel',
     # 布局组件
-    'PageBuilder',
+    'Page',
     # 应用组件
     'AppBuilder', 'AppPageGroupBuilder', 'AppPageBuilder',
     # 交互组件

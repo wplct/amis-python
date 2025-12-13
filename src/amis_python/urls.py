@@ -2,7 +2,8 @@ from django.urls import path, re_path
 from django.views.static import serve
 import os
 
-from .views import get_amis_app_config, get_page_config, amis_index, get_login_config, login, logout, current_user
+from .views import get_amis_app_config, get_page_config, amis_index, get_login_config, login, logout, current_user, \
+    UploadView
 
 # 获取当前应用的静态目录路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -65,8 +66,10 @@ urlpatterns = [
     path('api/login', login, name='login'),
     path('api/logout', logout, name='logout'),
     path('api/current_user', current_user, name='current_user'),
+    path('upload', UploadView.as_view(), name='upload'),
     # 静态文件路由，处理静态文件请求
     re_path(r'^(?P<path>.*)$', serve, {
         'document_root': amis_static_dir,
     }),
+
 ]

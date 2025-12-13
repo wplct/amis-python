@@ -1,7 +1,7 @@
 import threading
 from typing import Optional
 
-from . import PageBuilder
+from . import Page
 from .builder.app import AppBuilder, AppPageGroupBuilder, AppPageBuilder
 
 # 模块级变量：显式初始化为 None，并带类型注解
@@ -31,7 +31,7 @@ def register_group(group: AppPageGroupBuilder) -> None:
     get_default_app().register_group(group)
 
 
-def register_page(label: str, path: str, page: PageBuilder=None) -> AppPageBuilder:
+def register_page(label: str, path: str, page: Page=None) -> AppPageBuilder:
     """
     注册默认 amis 应用实例的页面
     """
@@ -50,7 +50,7 @@ def get_default_app() -> AppBuilder:
     return _default_amis_app
 
 
-def get_page(path: str) -> PageBuilder:
+def get_page(path: str) -> Page:
     """
     根据路径获取已注册的页面
     """
