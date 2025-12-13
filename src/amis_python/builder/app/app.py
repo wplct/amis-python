@@ -1,7 +1,7 @@
 # from __future__ import annotations
 from typing import Any, Dict, List, Union, Optional, Literal
 
-from ..api import AmisApiObject
+from ..api import Api
 from ..base import BaseModel, Field
 from ..layout.page import PageBuilder
 from .group import AppPageGroupBuilder
@@ -25,7 +25,7 @@ class AppBuilder(BaseModel):
     type: Literal["app"] = Field("app", description="组件类型")
 
     # === 基础信息 ===
-    api: Optional[Union[str, AmisApiObject]] = Field(None, description="动态拉取应用配置的接口。可以是 URL 字符串，或结构化 API 对象（支持 method/data/headers 等）")
+    api: Optional[Union[str, Api]] = Field(None, description="动态拉取应用配置的接口。可以是 URL 字符串，或结构化 API 对象（支持 method/data/headers 等）")
     brand_name: Optional[str] = Field(None, description="应用左上角的品牌名称")
     logo: Optional[str] = Field(None, description="品牌 Logo 图片 URL，显示在品牌名左侧")
     class_name: Optional[str] = Field(None, description="CSS 类名")

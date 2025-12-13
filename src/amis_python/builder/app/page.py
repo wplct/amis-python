@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Union, Optional, Literal
 
 from ..base import BaseModel, Field
 from ..layout.page import PageBuilder
-from ..api import AmisApiObject
+from ..api import Api
 
 
 class AppPageBuilder(BaseModel):

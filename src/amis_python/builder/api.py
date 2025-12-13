@@ -14,7 +14,7 @@ def convert_ninja_path_to_amis_template(path: str) -> str:
     return re.sub(r'\{([^}]+)\}', r'${\1}', path)
 
 
-class AmisApiObject(BaseModel):
+class Api(BaseModel):
     """
     AMIS 中结构化的 API 配置对象。
     参考：https://aisuda.bce.baidu.com/amis/zh-CN/docs/types/api
@@ -89,7 +89,7 @@ class LazyAmisApiObject(BaseModel):
             elif 'PATCH' in methods:
                 method = 'patch'
             url = convert_ninja_path_to_amis_template(f"{base_url}{operation.path}")
-            self._api_obj = AmisApiObject(
+            self._api_obj = Api(
                 url=url,
                 method=method,
                 **self._kwargs

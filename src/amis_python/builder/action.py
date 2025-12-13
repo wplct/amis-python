@@ -2,7 +2,7 @@ from typing import Optional, Literal, Dict, Any, Union, List
 from pydantic import Field
 
 from amis_python.builder.base import BaseModel
-from amis_python.builder.api import AmisApiObject
+from amis_python.builder.api import Api
 
 
 class Action(BaseModel):

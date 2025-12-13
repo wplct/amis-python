@@ -5,7 +5,13 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 
 from . import PageBuilder
+from .builder.layout import Container, Panel
 from .registry import get_default_app, get_page
+from .builder.form.form import Form
+from .builder.form.input_text import InputText
+from .builder.form.input_password import InputPassword
+from .builder.button import Button
+from .builder.api import Api
 
 
 def get_login_page() -> dict:
@@ -13,42 +19,39 @@ def get_login_page() -> dict:
     创建登录页面配置
     """
     # 创建登录表单
-    login_form = {
-        "type": "form",
-        "api": "/amis/api/login",  # 表单提交到登录API
-        "title": "用户登录",
-        "body": [
-            {
-                "type": "input-text",
-                "name": "username",
-                "label": "用户名",
-                "required": True,
-                "placeholder": "请输入用户名"
-            },
-            {
-                "type": "input-password",
-                "name": "password",
-                "label": "密码",
-                "required": True,
-                "placeholder": "请输入密码"
-            }
+    login_form = Form(
+        title="用户登录",
+        api=Api(
+            url="/amis/api/login",  # 表单提交到登录API
+            method="post"
+        ),
+        mode="normal",  # 垂直布局
+        body=[
+            InputText(
+                name="username",
+                label="用户名",
+                required=True,
+                placeholder="请输入用户名"
+            ),
+            InputPassword(
+                name="password",
+                label="密码",
+                required=True,
+                placeholder="请输入密码"
+            )
         ],
-        "actions": [
-            {
-                "type": "button",
-                "label": "登录",
-                "actionType": "submit",
-                "primary": True
-            },
-            {
-                "type": "button",
-                "label": "重置",
-                "actionType": "reset"
-            }
+        actions=[
+            Button(
+                label="登录",
+                action_type="submit",
+                primary=True
+            ),
+            Button(
+                label="重置",
+                action_type="reset"
+            )
         ],
-        "horizontal": False,  # 垂直布局
-        "mode": "horizontal",
-        "onEvent": {
+        on_event={
             "submitSucc": {
                 "actions": [
                     {
@@ -57,41 +60,43 @@ def get_login_page() -> dict:
                 ]
             }
         }
-    }
+    )
+    
+    # 将对象转换为字典
+    login_form = login_form.model_dump()
 
     # 创建登录页面
-    login_page = {
-        "type": "page",
-        "title": "登录",
-        "body": [
-            {
-                "type": "container",
-                "className": "login-container",
-                "style": {
+    login_page = PageBuilder(
+        title="登录",
+        body=[
+            Container(
+                class_name="login-container",
+                style={
                     "display": "flex",
                     "justifyContent": "center",
                     "alignItems": "center",
                     "height": "100%",
                     "backgroundColor": "#f5f5f5"
                 },
-                "body": [
-                    {
-                        "type": "panel",
-                        "className": "login-panel",
-                        "style": {
+                body=[
+                    Panel(
+                        class_name="login-panel",
+                        style={
                             "width": "400px",
                             "padding": "20px",
                             "backgroundColor": "#fff",
                             "borderRadius": "8px",
                             "boxShadow": "0 2px 12px 0 rgba(0, 0, 0, 0.1)"
                         },
-                        "body": login_form
-                    }
+                        body=login_form
+                    )
                 ]
-            }
+            )
         ]
-    }
-    return login_page
+    )
+    
+    # 将对象转换为字典
+    return login_page.model_dump()
 
 
 def get_amis_app_config(request) -> JsonResponse:

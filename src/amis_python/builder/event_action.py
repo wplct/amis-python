@@ -27,8 +27,7 @@ class EventAction(BaseModel):
     dialog: Optional[Dict[str, Any]] = Field(None, description="弹框配置")
     drawer: Optional[Dict[str, Any]] = Field(None, description="抽屉配置")
     wait_for_action: Optional[bool] = Field(None, description="是否等待弹窗响应")
-    output_var: Optional[str] = Field(None, description="输出数据变量名")
-    
+
     # ==================== 提示相关属性 ====================
     args: Optional[Dict[str, Any]] = Field(None, description="动作参数")
     

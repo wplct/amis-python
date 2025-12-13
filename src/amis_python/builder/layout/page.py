@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Union, Literal
 
 from ..base import BaseModel, Field
-from ..api import AmisApiObject
+from ..api import Api
 
 
 class PageBuilder(BaseModel):
@@ -31,7 +31,7 @@ class PageBuilder(BaseModel):
     toolbar: Optional[Union[str, List[Any]]] = Field(None, description="往页面的右上角加内容，需要注意的是，当有 title 时，该区域在右上角，没有时该区域在顶部")
     
     # === API 配置 ===
-    init_api: Optional[Union[str, "AmisApiObject"]] = Field(None, description="Page 用来获取初始数据的 api。返回的数据可以整个 page 级别使用")
+    init_api: Optional[Union[str, "Api"]] = Field(None, description="Page 用来获取初始数据的 api。返回的数据可以整个 page 级别使用")
     init_fetch: Optional[bool] = Field(None, description="是否起始拉取 initApi，默认 true")
     init_fetch_on: Optional[str] = Field(None, description="是否起始拉取 initApi, 通过表达式配置")
     
