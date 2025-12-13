@@ -244,6 +244,39 @@ class UploadView(View):
             'status': 0,
             'msg': '上传成功',
             'data': {
+                'value': obj.id,
+                'url': obj.file.url,
+                'name': obj.file.name,
+            }
+        })
+
+@method_decorator(login_required, name='dispatch')
+class UploadImageView(View):
+    http_method_names = ['post']
+
+    def post(self, request):
+        from amis_python.models import File
+
+        uploaded = request.FILES.get('file')
+        if not uploaded:
+            return JsonResponse({'error': 'missing file'}, status=400)
+
+        # 先建实例
+        obj = File(
+            key=str(uuid.uuid4()),
+            name=uploaded.name,
+            size=uploaded.size,
+            type=uploaded.content_type or 'application/octet-stream',
+            uploader=request.user
+        )
+        # 把文件挂上去；upload_to 会拿到 obj.uuid 去拼文件名
+        obj.file = uploaded
+        obj.save()
+
+        return JsonResponse({
+            'status': 0,
+            'msg': '上传成功',
+            'data': {
                 'value': obj.file.url,
                 'id': obj.id,
             }
