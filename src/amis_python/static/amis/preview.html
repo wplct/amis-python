@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <title>AMIS Preview</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <link rel="stylesheet" href="./amis/antd.css"/>
+    <link rel="stylesheet" href="./amis/helper.css"/>
+    <link rel="stylesheet" href="./amis/iconfont.css"/>
+    <style>
+        html,
+        body,
+        .app-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="root" class="app-wrapper"></div>
+<script src="./amis/sdk.js"></script>
+<script type="text/javascript">
+    (function () {
+        let amis = amisRequire('amis/embed');
+        
+        // AMIS JSON 配置将通过 Python 代码注入到这里
+        let amisJSON = {{AMIS_JSON}};
+        
+        // 渲染 AMIS 组件
+        amis.embed(
+            '#root',
+            amisJSON,
+            {
+                location: window.location,
+                data: {},
+                context: {}
+            },
+            {
+                // 主题配置
+                theme: 'antd'
+            }
+        );
+    })();
+</script>
+</body>
+</html>
