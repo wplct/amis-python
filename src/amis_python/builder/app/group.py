@@ -11,10 +11,6 @@ class AppPageGroupBuilder(BaseModel):
     表示一个页面分组，用于在侧边栏中对多个页面进行逻辑归类。
     对应 AMIS pages 中 type='group' 的配置项。
     """
-    model_config = {
-        "arbitrary_types_allowed": True
-    }
-    
     type: Literal["group"] = Field("group", description="组件类型")
     label: Optional[str] = Field(None, description="分组在导航菜单中显示的标题")
     children: Optional[List[Union[AppPageBuilder]]] = Field(None, description="分组内包含的页面或嵌套分组")

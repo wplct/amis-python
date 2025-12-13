@@ -1,5 +1,4 @@
 # 导出核心功能
-from .builder.base import BaseBuilder
 from .builder.api import AmisApiObject, to_api
 from .builder.layout import PageBuilder
 from .builder.app import AppBuilder, AppPageGroupBuilder, AppPageBuilder

@@ -110,7 +110,7 @@ def get_amis_app_config(request) -> JsonResponse:
     
     if get_default_app() is None:
         return JsonResponse({"error": "Default amis app not registered"}, status=500)
-    return JsonResponse(get_default_app().to_schema())
+    return JsonResponse(get_default_app().model_dump())
 
 
 def get_page_config(request, page_path: str) -> JsonResponse:

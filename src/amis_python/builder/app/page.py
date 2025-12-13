@@ -11,10 +11,6 @@ class AppPageBuilder(BaseModel):
     表示一个应用中的独立页面（可出现在导航菜单中）。
     对应 AMIS pages 配置中的单个页面项（非分组）。
     """
-    model_config = {
-        "arbitrary_types_allowed": True
-    }
-    
     type: Literal["appPage"] = Field("appPage", description="组件类型")
     label: Optional[str] = Field(None, description="页面在导航菜单中显示的名称")
     url: Optional[str] = Field(None, description="页面路由路径")
