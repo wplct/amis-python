@@ -126,14 +126,16 @@ def get_amis_app_config(request) -> JsonResponse:
     return JsonResponse(get_default_app().model_dump())
 
 
-def get_page_config(request, page_path: str) -> JsonResponse:
+def get_page_config(request, page_path: str=None) -> JsonResponse:
     """
     获取页面配置
     """
     # 检查用户是否已登录
     if not request.user.is_authenticated:
         return JsonResponse({"error": "未登录"}, status=401)
-
+    if page_path is None:
+        page = get_page('/')
+        return JsonResponse(page)
     page_path = '/' + page_path
     page = get_page(page_path)
     return JsonResponse(page)

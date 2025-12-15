@@ -7,9 +7,7 @@ from . import AppBuilder, register_default_app
 
 # 默认 amis 应用实例初始化为 None，允许用户手动注册
 _default_amis_app: Optional[AppBuilder] = None
-from django.utils.module_loading import module_has_submodule
-from importlib import import_module
-from django.apps import apps
+
 
 class AmisPythonConfig(AppConfig):
     """
@@ -23,6 +21,7 @@ class AmisPythonConfig(AppConfig):
         """
         应用就绪时执行的初始化代码
         """
+        print("amis-python 应用就绪...")
         app_config = getattr(settings, 'AMIS_APP_CONFIG', {})
         register_default_app(AppBuilder(
             header=[{

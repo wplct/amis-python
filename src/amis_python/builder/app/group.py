@@ -35,7 +35,10 @@ class AppPageGroupBuilder(BaseModel):
         """
         在当前分组下注册页面
         """
-
+        if path =='/':
+            page = AppPageBuilder(label=label, path=path, url=path)
+            self.children.append(page)
+            return page
         paths = [p for p in path.split('/') if p]
         if len(paths) == 1:
             page = AppPageBuilder(label=label, path=path, url=path)

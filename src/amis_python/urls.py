@@ -1,5 +1,6 @@
 from django.urls import path, re_path
 from django.views.static import serve
+from django.views.generic import RedirectView
 import os
 
 from .views import get_amis_app_config, get_page_config, amis_index, get_login_config, login, logout, current_user, \
@@ -8,8 +9,7 @@ from .views import get_amis_app_config, get_page_config, amis_index, get_login_c
 # 获取当前应用的静态目录路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
 amis_static_dir = os.path.join(current_dir, 'static', 'amis')
-
-
+amis_edit_static_dir = os.path.join(current_dir, 'static', 'amis_edit')
 
 # from django.apps import apps
 # from django.utils.module_loading import module_has_submodule
@@ -60,6 +60,7 @@ urlpatterns = [
     path('login/config/', get_login_config, name='get_login_config'),
     # 应用配置路由
     path('config/', get_amis_app_config, name='get_amis_app_config'),
+    path('page/', get_page_config, name='get_page_config'),
     # 页面配置路由（动态路由，匹配任意页面路径）
     path('page/<path:page_path>', get_page_config, name='get_page_config'),
     # API路由，必须在静态文件路由之前
@@ -68,7 +69,13 @@ urlpatterns = [
     path('api/current_user', current_user, name='current_user'),
     path('upload', UploadView.as_view(), name='upload'),
     path('upload_img', UploadImageView.as_view(), name='upload_img'),
-    # 静态文件路由，处理静态文件请求
+    # edit路径重定向到edit/index.html
+    path('edit', RedirectView.as_view(url='edit/index.html', permanent=False)),
+    # 静态文件路由，处理 /edit/ 开头的静态文件请求
+    re_path(r'^edit/(?P<path>.*)$', serve, {
+        'document_root': amis_edit_static_dir,
+    }),
+    # 静态文件路由，处理其他静态文件请求
     re_path(r'^(?P<path>.*)$', serve, {
         'document_root': amis_static_dir,
     }),

@@ -1,9 +1,12 @@
 import datetime
 import os
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Model
+from pydantic import ConfigDict
+from amis_python.builder import BaseModel
 
 
 def uuid_filename(instance, filename):
@@ -25,7 +28,7 @@ class File(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     # 可选：关联上传者
-    uploader = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    # uploader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
 
     @property
     def url(self):
@@ -37,4 +40,9 @@ class File(models.Model):
         verbose_name = 'File'
         verbose_name_plural = 'Files'
 
+class FileSchema(BaseModel):
+    id: int
+    name: str
+    url: str
 
+    model_config = ConfigDict(from_attributes=True)
