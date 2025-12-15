@@ -9,6 +9,8 @@ from amis_python.builder import BaseModel, Wrapper
 from amis_python.builder.form import Form, InputNumber, InputPassword, InputFile, InputImage, Hidden, InputText
 from amis_python.schema import ImageSerializer
 
+from amis_python.builder import Tpl
+
 
 class ViewSetForm:
     def __init__(self, view_set: GenericAPIView,basename=None):
@@ -28,7 +30,7 @@ class ViewSetForm:
             return 'image'
         return None
 
-    def field_to_input(self, field_name: str, field: Field) -> BaseModel:
+    def field_to_input(self, field_name: str, field: Field,static=None) -> BaseModel:
         input_type = self.get_field_type(field)
         title = field.label or field_name
 
@@ -38,6 +40,8 @@ class ViewSetForm:
             "required": field.required,
             "static": field.read_only,
         }
+        if static:
+            input_base_kwargs["static"] = True
         if input_type == 'number':
             return InputNumber(**input_base_kwargs)
         if input_type == 'password':
@@ -71,9 +75,17 @@ class ViewSetForm:
             ])
         return InputText(**input_base_kwargs)
 
+    def field_to_show(self, field_name, field_info, **kwargs):
+        return Tpl(
+            tpl="${"+field_name+"}"
+        )
 
-    def get_form_items(self):
-        return [self.field_to_input(field_name, field_info) for field_name, field_info in
+    def get_form_items(self, **kwargs):
+        return [self.field_to_input(field_name, field_info, **kwargs) for field_name, field_info in
+                self.serializer.get_fields().items()]
+
+    def get_list_items(self, **kwargs):
+        return [self.field_to_show(field_name, field_info, **kwargs) for field_name, field_info in
                 self.serializer.get_fields().items()]
 
 

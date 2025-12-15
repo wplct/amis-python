@@ -5,6 +5,7 @@ src/amis_python/apps.py
 src/amis_python/middleware.py
 src/amis_python/models.py
 src/amis_python/ninja_api.py
+src/amis_python/pagination.py
 src/amis_python/registry.py
 src/amis_python/schema.py
 src/amis_python/urls.py
@@ -14,6 +15,9 @@ src/amis_python.egg-info/SOURCES.txt
 src/amis_python.egg-info/dependency_links.txt
 src/amis_python.egg-info/requires.txt
 src/amis_python.egg-info/top_level.txt
+src/amis_python/build_amis/__init__.py
+src/amis_python/build_amis/crud.py
+src/amis_python/build_amis/form.py
 src/amis_python/builder/__init__.py
 src/amis_python/builder/action.py
 src/amis_python/builder/api.py
@@ -21,12 +25,15 @@ src/amis_python/builder/base.py
 src/amis_python/builder/button.py
 src/amis_python/builder/event_action.py
 src/amis_python/builder/tabs.py
+src/amis_python/builder/tpl.py
 src/amis_python/builder/utils.py
 src/amis_python/builder/wrapper.py
 src/amis_python/builder/app/__init__.py
 src/amis_python/builder/app/app.py
 src/amis_python/builder/app/group.py
 src/amis_python/builder/app/page.py
+src/amis_python/builder/crud2/__init__.py
+src/amis_python/builder/crud2/crud2.py
 src/amis_python/builder/form/__init__.py
 src/amis_python/builder/form/build.py
 src/amis_python/builder/form/form.py
@@ -459,6 +466,7 @@ src/amis_python/tests/__init__.py
 src/amis_python/tests/test_action.py
 src/amis_python/tests/test_add_action.py
 src/amis_python/tests/test_button.py
+src/amis_python/tests/test_crud2.py
 src/amis_python/tests/test_form.py
 src/amis_python/tests/test_hidden.py
 src/amis_python/tests/test_input_file.py

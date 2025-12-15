@@ -7,6 +7,7 @@ from .button import Button
 from .event_action import EventAction
 from .tabs import Tabs, TabsItem, TabsMode, IconPosition, SidePosition
 from .wrapper import Wrapper
+from .tpl import Tpl
 
 
 __all__ = [
@@ -23,5 +24,7 @@ __all__ = [
     # Tabs组件
     'Tabs', 'TabsItem', 'TabsMode', 'IconPosition', 'SidePosition',
     # 包裹容器组件
-    'Wrapper'
+    'Wrapper',
+    # 模板组件
+    'Tpl'
 ]
