@@ -138,6 +138,8 @@ def get_page_config(request, page_path: str=None) -> JsonResponse:
         return JsonResponse(page)
     page_path = '/' + page_path
     page = get_page(page_path)
+    if isinstance(page, Page):
+        return JsonResponse(page.model_dump())
     return JsonResponse(page)
 
 

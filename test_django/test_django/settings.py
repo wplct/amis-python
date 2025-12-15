@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_extensions',
+    'rest_framework',
     'amis_python',
     'my_app',
 ]
@@ -127,3 +127,8 @@ MEDIA_URL = 'media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'amis_python.pagination.AmisPagination',
+    'PAGE_SIZE': 10,               # 默认每页条数
+    'MAX_PAGE_SIZE': 200,          # 允许前端通过 ?page_size=xxx 拉更大的页
+}

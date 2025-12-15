@@ -1,4 +1,8 @@
+import json
+
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 
@@ -25,3 +29,9 @@ from datetime import datetime
 #     else:
 #         return JsonResponse({"status": 1, "msg": "只支持POST请求"}, status=405)
 
+@method_decorator(csrf_exempt, name='dispatch')
+class TestDataView(View):
+    def get(self, request):
+        data = request.GET.get('data', '')
+        data = json.loads(data)
+        return JsonResponse({'data': data})

@@ -28,7 +28,7 @@ class File(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     # 可选：关联上传者
-    # uploader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    uploader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
 
     @property
     def url(self):
@@ -40,9 +40,3 @@ class File(models.Model):
         verbose_name = 'File'
         verbose_name_plural = 'Files'
 
-class FileSchema(BaseModel):
-    id: int
-    name: str
-    url: str
-
-    model_config = ConfigDict(from_attributes=True)

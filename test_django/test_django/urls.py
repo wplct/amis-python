@@ -18,9 +18,19 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
+from my_app.api.domain_api import DomainViewSet
+from my_app.views import TestDataView
+
+router = DefaultRouter()
+router.register(r'domain', DomainViewSet)
+from my_app.amis import upload_image
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    # path('amis/', include('my_app.urls')),
-    path('amis/', include('amis_python.urls')),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+                  path('admin/', admin.site.urls),
+                  # path('amis/', include('my_app.urls')),
+                  path('amis/', include('amis_python.urls')),
+                  path('api/', include(router.urls)),
+                  path('test_data', TestDataView.as_view(), name='test_data'),
+              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

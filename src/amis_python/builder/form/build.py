@@ -3,8 +3,9 @@ from typing import Type, Literal, Optional, Union, List, get_origin, get_args
 from pydantic import BaseModel as PydanticBaseModel, Field, ConfigDict
 from pydantic.fields import FieldInfo
 
-from amis_python.builder import BaseModel
-from amis_python.builder.form import Form, InputText, InputPassword, InputNumber, FormItem
+from amis_python.builder import BaseModel, Wrapper
+from amis_python.builder.form import Form, InputText, InputPassword, InputNumber, FormItem, InputFile, InputImage, \
+    Hidden
 
 
 class AmisExtra(PydanticBaseModel):
@@ -12,7 +13,7 @@ class AmisExtra(PydanticBaseModel):
     专门描述 amis 在 json_schema_extra 里可能出现的字段。
     想加别的 amis 属性继续往这里堆即可。
     """
-    type: Optional[Literal["password", "email", "url",'image']] = None
+    type: Optional[Literal["password", "email", "url", 'image']] = None
 
 
 class User(PydanticBaseModel):
@@ -43,6 +44,10 @@ class SchemaFormBuild:
             ann = args[0]
         if issubclass(ann, int):
             return 'number'
+        # if issubclass(ann, FileSchema):
+        #     return 'file'
+        # if issubclass(ann, ImageSchema):
+        #     return 'image'
         return None
 
     def field_to_input(self, field_name: str, field_info: FieldInfo) -> BaseModel:
@@ -58,19 +63,50 @@ class SchemaFormBuild:
             return InputNumber(**input_base_kwargs)
         if input_type == 'password':
             return InputPassword(**input_base_kwargs)
+
+        if input_type == 'file':
+            return InputFile(
+                receiver="/amis/upload",
+                # drag=True,
+                **input_base_kwargs
+            )
+        if input_type == 'image':
+            base = input_base_kwargs.copy()
+            base.pop('name', None)
+            return Wrapper(body=[
+                InputImage(
+                    **base,
+                    receiver="/amis/upload_img",
+                    name=f'upload_{field_name}',
+                    auto_fill={
+                        field_name: {
+                            "id": "${id}",
+                            "name": "${name}",
+                            "url": "${url}",
+                        }
+                    },
+                ),
+                Hidden(**input_base_kwargs),
+            ])
         return InputText(**input_base_kwargs)
 
     def get_form_items(self) -> List[BaseModel]:
         return [self.field_to_input(field_name, field_info) for field_name, field_info in
                 self.schema.model_fields.items()]
 
-    def schema_to_form(self) -> BaseModel:
-        title = self.schema.model_config.get("title")
+    def schema_to_form(self,**kwargs) -> BaseModel:
+        title = self.schema.model_config.get("title", None)
+        print(kwargs)
+        _kwargs = {
+            'title': title,
+            'wrap_with_panel': False,
+            # 'actions':[]
+        }
+        _kwargs.update(kwargs)
+        print(_kwargs)
         return Form(
-            title=title,
             body=self.get_form_items(),
-            wrap_with_panel=False,
-            actions=[]
+            **_kwargs
         )
 
 

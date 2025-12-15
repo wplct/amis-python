@@ -31,7 +31,7 @@ def register_group(group: AppPageGroupBuilder) -> None:
     get_default_app().register_group(group)
 
 
-def register_page(label: str, path: str, page: Page=None) -> AppPageBuilder:
+def register_page(label: str, path: str, page=None) -> AppPageBuilder:
     """
     注册默认 amis 应用实例的页面
     """
@@ -54,4 +54,7 @@ def get_page(path: str) -> Page:
     """
     根据路径获取已注册的页面
     """
-    return get_default_app().get_page(path)
+    page = get_default_app().get_page(path)
+    if callable(page):
+        page = page()
+    return page
