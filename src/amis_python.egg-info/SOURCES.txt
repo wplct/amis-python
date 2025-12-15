@@ -25,7 +25,6 @@ src/amis_python/builder/base.py
 src/amis_python/builder/button.py
 src/amis_python/builder/event_action.py
 src/amis_python/builder/tabs.py
-src/amis_python/builder/tpl.py
 src/amis_python/builder/utils.py
 src/amis_python/builder/wrapper.py
 src/amis_python/builder/app/__init__.py
@@ -51,7 +50,7 @@ src/amis_python/builder/layout/container.py
 src/amis_python/builder/layout/page.py
 src/amis_python/builder/layout/panel.py
 src/amis_python/migrations/0001_initial.py
-src/amis_python/migrations/0002_remove_file_uploader_alter_file_file.py
+src/amis_python/migrations/0002_alter_file_file.py
 src/amis_python/migrations/0003_file_uploader.py
 src/amis_python/migrations/__init__.py
 src/amis_python/static/amis/ang-ie11.css
