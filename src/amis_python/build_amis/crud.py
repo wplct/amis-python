@@ -70,8 +70,8 @@ class ViewSetCRUD:
         return Button(label="修改", level="primary",
                       action_type="dialog",
                       dialog=Dialog(
-                          title="新建",
-                          body=self.view_form.to_create_form(),
+                          title="修改",
+                          body=self.view_form.to_update_form(),
                           size="md"
                       ))
 

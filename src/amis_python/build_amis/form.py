@@ -79,7 +79,7 @@ class ViewSetForm:
         field_type = self.get_field_type(field)
         title = field.label or field_name
         if field_type == 'image':
-            return Image(src="${"+field_name+".url}",label= title)
+            return Image(src="${"+field_name+".url}",label= title,enlargeAble=True)
         return Tpl(
             tpl="${"+field_name+"}",label= title
         )

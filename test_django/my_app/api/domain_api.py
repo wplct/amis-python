@@ -28,6 +28,6 @@ class DomainSerializer(serializers.ModelSerializer):
         return instance
 
 class DomainViewSet(viewsets.ModelViewSet):
-    queryset = Domain.objects.all()
+    queryset = Domain.objects.order_by('-id').all()
     serializer_class = DomainSerializer
 
