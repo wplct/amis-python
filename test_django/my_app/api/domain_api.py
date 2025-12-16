@@ -1,4 +1,5 @@
 from rest_framework import serializers, viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from amis_python.models import File
@@ -31,3 +32,11 @@ class DomainViewSet(viewsets.ModelViewSet):
     queryset = Domain.objects.order_by('-id').all()
     serializer_class = DomainSerializer
 
+
+    @action(methods=['POST'], detail=False)
+    def test(self, request):
+        pass
+
+    @action(methods=['POST'], detail=True)
+    def test2(self, request):
+        pass

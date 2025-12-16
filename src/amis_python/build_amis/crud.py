@@ -9,6 +9,12 @@ from amis_python.builder import Button, EventAction, Dialog, Flex, Container, Pa
 from amis_python.builder.crud2 import CRUD2, CRUD2Mode, LoadType
 
 
+def button(**kwargs):
+    def decorator(func):
+        func.button = Button(**kwargs)
+        return func
+    return decorator
+
 class ViewSetCRUD:
     def __init__(self, view_set: GenericAPIView, basename=None):
         self.view_set = view_set
@@ -33,18 +39,47 @@ class ViewSetCRUD:
             url=reverse(f"{self.basename}-detail", kwargs={"pk": "0"}).replace("0", "${id}"),
         )
 
+    def get_list_action_button(self):
+        buttons = []
+        for action in self.view_set.get_extra_actions():
+            if not action.detail:
+                if hasattr(action, 'button'):
+                    buttons.append(action.button)
+                    continue
+                name = action.__name__
+                buttons.append(Button(
+                    label=name,
+                    class_name='m-r-xs',
+                ))
+        return buttons
+
+    def get_detail_action_button(self):
+        buttons = []
+        for action in self.view_set.get_extra_actions():
+            if action.detail:
+                if hasattr(action, 'button'):
+                    buttons.append(action.button)
+                    continue
+                name = action.__name__
+                buttons.append(Button(
+                    label=name,
+                ))
+        return buttons
+
     def get_header_toolbar(self):
+
         return [Button(
             label="新建",
             level="primary",
+            class_name='m-r-xs'
         ).add_action('click', EventAction(
             action_type="dialog",
             dialog=Dialog(
                 title="新建",
                 body=self.view_form.to_create_form(),
-                size="md"
+                size="md",
             )
-        ))]
+        ))]+self.get_list_action_button()
 
     def get_footer_toolbar(self):
         return [
@@ -91,6 +126,7 @@ class ViewSetCRUD:
             ButtonGroup(
                 label="操作",
                 buttons=[
+                    *self.get_detail_action_button(),
                     self.get_update_button(),
                     self.get_delete_button()
                 ]
