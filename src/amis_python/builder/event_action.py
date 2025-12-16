@@ -17,7 +17,7 @@ class EventAction(BaseModel):
     action_type: Literal["ajax", "link", "url", "drawer", "dialog", "confirm", "cancel", "prev", "next", "copy", "close", "button", "reset", "submit", "clear", "download", "saveAs", "email", "reload", "toast", "goBack", "goPage", "refresh", "closeDialog", "closeDrawer", "confirmDialog", "alert", "print","search"] = Field(..., description="动作类型")
     
     # ==================== AJAX 相关属性 ====================
-    api: Optional[Union[str, Dict[str, Any]]] = Field(None, description="请求接口")
+    api: Optional[Any] = Field(None, description="请求接口")
     options: Optional[Dict[str, Any]] = Field(None, description="其他配置")
     messages: Optional[Dict[str, str]] = Field(None, description="请求成功/失败后的提示信息")
     output_var: Optional[str] = Field(None, description="输出数据变量名")

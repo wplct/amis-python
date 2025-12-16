@@ -132,3 +132,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,               # 默认每页条数
     'MAX_PAGE_SIZE': 200,          # 允许前端通过 ?page_size=xxx 拉更大的页
 }
+
+AMIS_APP_CONFIG = {
+    "brandName": "Django-Amis",
+}

@@ -1,12 +1,11 @@
 # from django.urls import reverse
-from http.cookiejar import debug
 
 from rest_framework.generics import GenericAPIView
 from rest_framework.reverse import reverse
 
 from amis_python import Api
 from amis_python.build_amis.form import ViewSetForm
-from amis_python.builder import Button, EventAction, Dialog, Flex, Container, Pagination
+from amis_python.builder import Button, EventAction, Dialog, Flex, Container, Pagination, ButtonGroup
 from amis_python.builder.crud2 import CRUD2, CRUD2Mode, LoadType
 
 
@@ -20,10 +19,18 @@ class ViewSetCRUD:
         else:
             self.basename = basename
 
+        self.component_id=f"{self.basename}-crud"
+
     def get_api(self):
         return Api(
             method="get",
             url=reverse(f"{self.basename}-list"),
+        )
+
+    def get_delete_api(self):
+        return Api(
+            method="delete",
+            url=reverse(f"{self.basename}-detail", kwargs={"pk": "0"}).replace("0", "${id}"),
         )
 
     def get_header_toolbar(self):
@@ -48,7 +55,6 @@ class ViewSetCRUD:
                     "perPage",
                     "pager"
                 ],
-                behavior= "Pagination",
                 mode="normal",
                 per_page_available=[
                     5,
@@ -58,18 +64,42 @@ class ViewSetCRUD:
                     100
                 ]
             ),
-            Flex(items=[
-                Container(align="left"),
-                Container(align="right", body=[
-
-                ])
-            ])
         ]
+
+    def get_update_button(self):
+        return Button(label="修改", level="primary",
+                      action_type="dialog",
+                      dialog=Dialog(
+                          title="新建",
+                          body=self.view_form.to_create_form(),
+                          size="md"
+                      ))
+
+    def get_delete_button(self):
+        return (Button(label="删除", level="danger",
+                       confirm_text="确定要删除吗？")
+        .add_action(
+            'click',
+            EventAction(
+                action_type="ajax",
+                api=self.get_delete_api(),
+            )
+        ).add_action('click',EventAction(action_type='search', component_id=self.component_id)))
+
     def get_list_button(self):
-        return [Button(label="测试")]
+        return [
+            ButtonGroup(
+                label="操作",
+                buttons=[
+                    self.get_update_button(),
+                    self.get_delete_button()
+                ]
+            )
+        ]
 
     def get_columns(self):
-        return self.view_form.get_list_items(static=True)+self.get_list_button()
+        return self.view_form.get_list_items(static=True) + self.get_list_button()
+
     def to_crud(self, **kwargs):
         return CRUD2(
             id=f"{self.basename}-crud",

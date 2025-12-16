@@ -4,12 +4,13 @@ from .app import *
 from .layout import *
 from .action import Action
 from .button import Button
-from .dialog import Dialog
+from .button_group import ButtonGroup
 from .event_action import EventAction
 from .tabs import Tabs, TabsItem, TabsMode, IconPosition, SidePosition
 from .wrapper import Wrapper
 from .tpl import Tpl
 from .image import Image, ImageAction
+from .dialog import Dialog
 
 
 __all__ = [
@@ -20,7 +21,7 @@ __all__ = [
     # 应用组件
     'AppBuilder', 'AppPageGroupBuilder', 'AppPageBuilder',
     # 交互组件
-    'Action', 'Button', 'Dialog',
+    'Action', 'Button', 'ButtonGroup', 'Dialog',
     # 事件动作组件
     'EventAction',
     # Tabs组件

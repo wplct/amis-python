@@ -113,6 +113,18 @@ class ViewSetForm:
         ).add_action('submitSucc',
                      EventAction(action_type='search', component_id=component_id))
 
+    def to_update_form(self, **kwargs):
+        _kwargs = {
+            'api': self.get_update_api(),
+        }
+        _kwargs.update(kwargs)
+        component_id = f"{self.basename}-crud"
+        return Form(
+            body=self.get_form_items(),
+            **_kwargs
+        ).add_action('submitSucc',
+                     EventAction(action_type='search', component_id=component_id))
+
     def to_detail_form(self, **kwargs):
         _kwargs = {
             'title': '详情',

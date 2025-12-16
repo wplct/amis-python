@@ -44,7 +44,7 @@ class Action(BaseModel):
     close: Optional[Union[bool, str]] = Field(None, description="是否关闭当前弹窗")
 
     # ==================== AJAX 相关属性 ====================
-    api: Optional[Union[str, Dict[str, Any]]] = Field(None, description="请求接口")
+    api: Optional[Any] = Field(None, description="请求接口")
     redirect: Optional[str] = Field(None, description="请求结束后跳转的路径")
     feedback: Optional[Dict[str, Any]] = Field(None, description="请求成功后显示的反馈弹框")
     messages: Optional[Dict[str, str]] = Field(None, description="请求成功/失败提示信息")
@@ -56,7 +56,7 @@ class Action(BaseModel):
     link: Optional[str] = Field(None, description="单页跳转地址")
 
     # ==================== 弹框相关属性 ====================
-    dialog: Optional[Dict[str, Any]] = Field(None, description="弹框配置")
+    dialog: Optional[Any] = Field(None, description="弹框配置")
     drawer: Optional[Dict[str, Any]] = Field(None, description="抽屉配置")
     next_condition: Optional[bool] = Field(None, description="下一条数据的条件")
 
