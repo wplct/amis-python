@@ -39,6 +39,7 @@ class BaseModel(PydanticBaseModel):
         extra='allow'
     )
     id: Optional[str] = Field(None, description="组件 ID")
+    label: Optional[str] = Field(None, description="名称")
     # ==================== 事件配置 ====================
     on_event: Optional[Dict[str, Any]] = Field(None, description="事件动作配置")
     
