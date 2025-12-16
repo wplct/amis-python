@@ -14,7 +14,7 @@ class EventAction(BaseModel):
     """
 
     # ==================== 基本属性 ====================
-    action_type: Literal["ajax", "link", "url", "drawer", "dialog", "confirm", "cancel", "prev", "next", "copy", "close", "button", "reset", "submit", "clear", "download", "saveAs", "email", "reload", "toast", "goBack", "goPage", "refresh", "closeDialog", "closeDrawer", "confirmDialog", "alert", "print"] = Field(..., description="动作类型")
+    action_type: Literal["ajax", "link", "url", "drawer", "dialog", "confirm", "cancel", "prev", "next", "copy", "close", "button", "reset", "submit", "clear", "download", "saveAs", "email", "reload", "toast", "goBack", "goPage", "refresh", "closeDialog", "closeDrawer", "confirmDialog", "alert", "print","search"] = Field(..., description="动作类型")
     
     # ==================== AJAX 相关属性 ====================
     api: Optional[Union[str, Dict[str, Any]]] = Field(None, description="请求接口")
@@ -24,7 +24,7 @@ class EventAction(BaseModel):
     silent: Optional[bool] = Field(None, description="是否静默模式")
     
     # ==================== 弹框相关属性 ====================
-    dialog: Optional[Dict[str, Any]] = Field(None, description="弹框配置")
+    dialog: Optional[Union[str, Dict[str, Any], Any]] = Field(None, description="弹框配置")
     drawer: Optional[Dict[str, Any]] = Field(None, description="抽屉配置")
     wait_for_action: Optional[bool] = Field(None, description="是否等待弹窗响应")
 

@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.fields import Field
 from rest_framework.generics import GenericAPIView
 
-from amis_python.builder import BaseModel, Wrapper
+from amis_python.builder import BaseModel, Wrapper, Action, EventAction, Image
 from amis_python.builder.form import Form, InputNumber, InputPassword, InputFile, InputImage, Hidden, InputText
 from amis_python.schema import ImageSerializer
 
@@ -75,34 +75,42 @@ class ViewSetForm:
             ])
         return InputText(**input_base_kwargs)
 
-    def field_to_show(self, field_name, field_info, **kwargs):
+    def field_to_show(self, field_name, field, **kwargs):
+        field_type = self.get_field_type(field)
+        if field_type == 'image':
+            return Image(src="${"+field_name+".url}",)
         return Tpl(
             tpl="${"+field_name+"}"
         )
 
-    def get_form_items(self, **kwargs):
-        return [self.field_to_input(field_name, field_info, **kwargs) for field_name, field_info in
-                self.serializer.get_fields().items()]
+    def get_fields(self,exclude_read_only=False):
+        for field_name, field in self.serializer.get_fields().items():
+            if exclude_read_only and field.read_only:
+                continue
+            yield field_name, field
+
+    def get_form_items(self,exclude_read_only=False, **kwargs):
+        return [self.field_to_input(field_name, field, **kwargs) for field_name, field in
+                self.get_fields(exclude_read_only)]
 
     def get_list_items(self, **kwargs):
-        return [self.field_to_show(field_name, field_info, **kwargs) for field_name, field_info in
-                self.serializer.get_fields().items()]
+        return [self.field_to_show(field_name, field, **kwargs) for field_name, field in
+                self.get_fields()]
 
 
 
 
     def to_create_form(self, **kwargs):
         _kwargs = {
-            # 'title': title,
-            'wrap_with_panel': True,
             'api': self.get_create_api(),
-            # 'actions':[]
         }
         _kwargs.update(kwargs)
+        component_id = f"{self.basename}-crud"
         return Form(
-            body=self.get_form_items(),
+            body=self.get_form_items(exclude_read_only=True),
             **_kwargs
-        )
+        ).add_action('submitSucc',
+                     EventAction(action_type='search', component_id=component_id))
 
     def to_detail_form(self, **kwargs):
         _kwargs = {
