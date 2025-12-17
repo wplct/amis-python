@@ -1,5 +1,5 @@
 from unittest import TestCase
-from amis_python.builder.crud2 import CRUD2, CRUD2Mode, LoadType
+from amis_python.builder.crud import CRUD2, CRUD2Mode, LoadType
 
 
 class CRUD2TestCase(TestCase):

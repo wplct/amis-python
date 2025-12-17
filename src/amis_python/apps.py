@@ -1,12 +1,12 @@
-from typing import Optional
+from typing import Optional, Any
 
 from django.apps import AppConfig
 from django.conf import settings
 
-from . import AppBuilder, register_default_app
+
 
 # 默认 amis 应用实例初始化为 None，允许用户手动注册
-_default_amis_app: Optional[AppBuilder] = None
+_default_amis_app: Optional[Any] = None
 
 
 class AmisPythonConfig(AppConfig):
@@ -21,6 +21,8 @@ class AmisPythonConfig(AppConfig):
         """
         应用就绪时执行的初始化代码
         """
+        from amis_python.builder.app import AppBuilder
+        from amis_python.registry import register_default_app
         print("amis-python 应用就绪...")
         app_config = getattr(settings, 'AMIS_APP_CONFIG', {})
         register_default_app(AppBuilder(

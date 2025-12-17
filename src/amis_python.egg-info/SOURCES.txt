@@ -23,6 +23,7 @@ src/amis_python/builder/action.py
 src/amis_python/builder/api.py
 src/amis_python/builder/base.py
 src/amis_python/builder/button.py
+src/amis_python/builder/button_group.py
 src/amis_python/builder/dialog.py
 src/amis_python/builder/event_action.py
 src/amis_python/builder/image.py
@@ -34,8 +35,9 @@ src/amis_python/builder/app/__init__.py
 src/amis_python/builder/app/app.py
 src/amis_python/builder/app/group.py
 src/amis_python/builder/app/page.py
-src/amis_python/builder/crud2/__init__.py
-src/amis_python/builder/crud2/crud2.py
+src/amis_python/builder/crud/__init__.py
+src/amis_python/builder/crud/crud.py
+src/amis_python/builder/crud/crud2.py
 src/amis_python/builder/form/__init__.py
 src/amis_python/builder/form/build.py
 src/amis_python/builder/form/form.py
@@ -49,13 +51,14 @@ src/amis_python/builder/form/input_password.py
 src/amis_python/builder/form/input_text.py
 src/amis_python/builder/form/select.py
 src/amis_python/builder/layout/__init__.py
+src/amis_python/builder/layout/card.py
+src/amis_python/builder/layout/cards.py
 src/amis_python/builder/layout/container.py
 src/amis_python/builder/layout/flex.py
 src/amis_python/builder/layout/page.py
 src/amis_python/builder/layout/pagination.py
 src/amis_python/builder/layout/panel.py
 src/amis_python/migrations/0001_initial.py
-src/amis_python/migrations/0002_remove_file_uploader_alter_file_file.py
 src/amis_python/migrations/__init__.py
 src/amis_python/static/amis/ang-ie11.css
 src/amis_python/static/amis/ang.css

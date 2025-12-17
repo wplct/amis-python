@@ -128,7 +128,11 @@ MEDIA_URL = 'media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'amis_python.pagination.AmisPagination',
+    'EXCEPTION_HANDLER': 'amis_python.drf.std_exception_handler',
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',  # 保持 JSON
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'amis_python.drf.AmisPagination',
     'PAGE_SIZE': 10,               # 默认每页条数
     'MAX_PAGE_SIZE': 200,          # 允许前端通过 ?page_size=xxx 拉更大的页
 }

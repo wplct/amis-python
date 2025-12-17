@@ -5,15 +5,17 @@ from rest_framework.reverse import reverse
 
 from amis_python import Api
 from amis_python.build_amis.form import ViewSetForm
-from amis_python.builder import Button, EventAction, Dialog, Flex, Container, Pagination, ButtonGroup
-from amis_python.builder.crud2 import CRUD2, CRUD2Mode, LoadType
+from amis_python.builder import Button, EventAction, Dialog, Flex, Container, Pagination, ButtonGroup, Card
+from amis_python.builder.crud import CRUD2, CRUD2Mode, LoadType
 
 
 def button(**kwargs):
     def decorator(func):
         func.button = Button(**kwargs)
         return func
+
     return decorator
+
 
 class ViewSetCRUD:
     def __init__(self, view_set: GenericAPIView, basename=None):
@@ -25,7 +27,7 @@ class ViewSetCRUD:
         else:
             self.basename = basename
 
-        self.component_id=f"{self.basename}-crud"
+        self.component_id = f"{self.basename}-crud"
 
     def get_api(self):
         return Api(
@@ -79,7 +81,7 @@ class ViewSetCRUD:
                 body=self.view_form.to_create_form(),
                 size="md",
             )
-        ))]+self.get_list_action_button()
+        ))] + self.get_list_action_button()
 
     def get_footer_toolbar(self):
         return [
@@ -113,34 +115,57 @@ class ViewSetCRUD:
     def get_delete_button(self):
         return (Button(label="删除", level="danger",
                        confirm_text="确定要删除吗？")
-        .add_action(
+                .add_action(
             'click',
             EventAction(
                 action_type="ajax",
                 api=self.get_delete_api(),
             )
-        ).add_action('click',EventAction(action_type='search', component_id=self.component_id)))
+        ).add_action('click', EventAction(action_type='search', component_id=self.component_id)))
 
-    def get_list_button(self):
-        return [
-            ButtonGroup(
-                label="操作",
-                buttons=[
-                    *self.get_detail_action_button(),
-                    self.get_update_button(),
-                    self.get_delete_button()
-                ]
-            )
+    def get_list_button(self, group=True):
+        buttons = [
+            *self.get_detail_action_button(),
+            self.get_update_button(),
+            self.get_delete_button()
         ]
+        if group:
+            return [
+                ButtonGroup(
+                    label="操作",
+                    buttons=buttons
+                )
+            ]
+        return buttons
 
     def get_columns(self):
-        return self.view_form.get_list_items(static=True) + self.get_list_button()
+        return self.view_form.get_list_items(static=True)
 
     def to_crud(self, **kwargs):
         return CRUD2(
             id=f"{self.basename}-crud",
             mode=CRUD2Mode.TABLE2,
             api=self.get_api(),
+            columns=self.get_columns() + self.get_list_button(),
+            header_toolbar=self.get_header_toolbar(),
+            footer_toolbar=self.get_footer_toolbar(),
+            sync_location=True,
+            primary_field="id",
+            load_type=LoadType.PAGINATION,
+            **kwargs
+        )
+
+
+class ViewSetCRUDCard(ViewSetCRUD):
+    def to_crud(self, **kwargs):
+        return CRUD2(
+            id=f"{self.basename}-crud",
+            mode=CRUD2Mode.CARDS,
+            api=self.get_api(),
+            card=Card(
+                body=self.get_columns(),
+                actions=self.get_list_button(group=False)
+            ),
             columns=self.get_columns(),
             header_toolbar=self.get_header_toolbar(),
             footer_toolbar=self.get_footer_toolbar(),
