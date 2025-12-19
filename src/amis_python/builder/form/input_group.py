@@ -15,7 +15,7 @@ class InputGroup(FormItem):
     type: Literal["input-group"] = Field("input-group", description="指定为输入框组合组件")
     
     # ==================== 核心属性 ====================
-    body: Optional[List[Dict[str, Any]]] = Field(None, description="表单项集合")
+    body: Optional[Any] = Field(None, description="表单项集合")
     
     # ==================== 校验相关属性 ====================
     validation_config: Optional[Dict[str, Any]] = Field(None, description="校验相关配置")

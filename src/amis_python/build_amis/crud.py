@@ -9,12 +9,31 @@ from amis_python.builder import Button, EventAction, Dialog, Flex, Container, Pa
 from amis_python.builder.crud import CRUD2, CRUD2Mode, LoadType
 
 
-def button(**kwargs):
-    def decorator(func):
-        func.button = Button(**kwargs)
-        return func
 
-    return decorator
+# def get_dialog(func):
+#     kwargs = getattr(func, 'btn_kwargs', {})
+#     label = kwargs.get('label', func.__name__)
+#     serializer_class = kwargs.get('serializer_class', func.viewset.serializer_class)
+#
+#     return Dialog(
+#         title=label,
+#         body=ViewSetForm(func.viewset(),serializer_class=serializer_class).to_update_form()
+#     )
+
+
+# def get_func_btn(func):
+#     def decorator():
+#         kwargs = getattr(func, 'btn_kwargs', {})
+#         return Button(**kwargs)
+#     return decorator
+#
+#
+# def button(**kwargs):
+#     def decorator(func):
+#         func.btn = get_func_btn(func)
+#         func.btn_kwargs = kwargs
+#         return func
+#     return decorator
 
 
 class ViewSetCRUD:
@@ -43,29 +62,10 @@ class ViewSetCRUD:
 
     def get_list_action_button(self):
         buttons = []
-        for action in self.view_set.get_extra_actions():
-            if not action.detail:
-                if hasattr(action, 'button'):
-                    buttons.append(action.button)
-                    continue
-                name = action.__name__
-                buttons.append(Button(
-                    label=name,
-                    class_name='m-r-xs',
-                ))
         return buttons
 
     def get_detail_action_button(self):
         buttons = []
-        for action in self.view_set.get_extra_actions():
-            if action.detail:
-                if hasattr(action, 'button'):
-                    buttons.append(action.button)
-                    continue
-                name = action.__name__
-                buttons.append(Button(
-                    label=name,
-                ))
         return buttons
 
     def get_header_toolbar(self):

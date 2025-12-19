@@ -2,10 +2,10 @@ README.md
 pyproject.toml
 src/amis_python/__init__.py
 src/amis_python/apps.py
+src/amis_python/drf.py
 src/amis_python/middleware.py
 src/amis_python/models.py
 src/amis_python/ninja_api.py
-src/amis_python/pagination.py
 src/amis_python/registry.py
 src/amis_python/schema.py
 src/amis_python/urls.py

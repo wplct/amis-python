@@ -11,11 +11,13 @@ from .wrapper import Wrapper
 from .tpl import Tpl
 from .image import Image, ImageAction
 from .dialog import Dialog
+from .service import Service
+from .divider import Divider
 
 
 __all__ = [
     # 基础组件
-    'Api','BaseModel',
+    'Api','BaseModel','Service','Divider',
     # 布局组件
     'Page', 'Container', 'Panel', 'Flex', 'Pagination',
     # 应用组件

@@ -13,9 +13,12 @@ from amis_python.builder import Tpl
 
 
 class ViewSetForm:
-    def __init__(self, view_set: GenericAPIView,basename=None):
+    def __init__(self, view_set: GenericAPIView,serializer_class=None,basename=None):
         self.view_set = view_set
-        self.serializer = view_set.get_serializer_class()()
+        if serializer_class:
+            self.serializer = serializer_class()
+        else:
+            self.serializer = view_set.get_serializer_class()()
         if not basename:
             self.basename = view_set.queryset.model._meta.model_name
         else:

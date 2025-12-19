@@ -52,6 +52,14 @@ class AmisViewSet(viewsets.ModelViewSet):
     """
     pagination_class = AmisPagination
 
+    def __init_subclass__(cls, **kw):
+        super().__init_subclass__(**kw)
+        # 类已经生成，可以扫描自己
+        for name, attr in cls.__dict__.items():
+            if getattr(attr, 'btn', False):
+                attr.viewset = cls
+
+
     def dispatch(self, request, *args, **kwargs):
         try:
             response = super().dispatch(request, *args, **kwargs)
