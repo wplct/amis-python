@@ -1,5 +1,5 @@
 import threading
-from typing import Optional
+from typing import Optional, Union, Callable
 
 from . import Page
 from .builder.app import AppBuilder, AppPageGroupBuilder, AppPageBuilder
@@ -50,11 +50,10 @@ def get_default_app() -> AppBuilder:
     return _default_amis_app
 
 
-def get_page(path: str) -> Page:
+def get_page(path: str) -> Union[Page,Callable]:
     """
     根据路径获取已注册的页面
     """
     page = get_default_app().get_page(path)
-    if callable(page):
-        page = page()
+
     return page

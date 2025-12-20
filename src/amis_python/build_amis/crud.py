@@ -1,7 +1,11 @@
 # from django.urls import reverse
+from contextlib import contextmanager
+
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import GenericAPIView
 from rest_framework.reverse import reverse
+from rest_framework.views import APIView
 
 from amis_python import Api
 from amis_python.build_amis.form import ViewSetForm
@@ -10,62 +14,48 @@ from amis_python.builder.crud import CRUD2, CRUD2Mode, LoadType
 from amis_python.builder.form import Form, InputText
 
 
-# def get_dialog(func):
-#     kwargs = getattr(func, 'btn_kwargs', {})
-#     label = kwargs.get('label', func.__name__)
-#     serializer_class = kwargs.get('serializer_class', func.viewset.serializer_class)
-#
-#     return Dialog(
-#         title=label,
-#         body=ViewSetForm(func.viewset(),serializer_class=serializer_class).to_update_form()
-#     )
+def _action_allowed(viewset_cls, request, action: str, method: str, kwargs=None) -> bool:
+    """
+    任意 Django/DRF request 都能用，内部会转成 DRF Request 再走权限链路。
+    """
+    kwargs = kwargs or {}
+
+    # 1. 先造一个 DRF 版本的 request（带上 authenticators 等全套属性）
+    drf_request = APIView().initialize_request(request)
+
+    # 2. 临时改 method
+    origin = drf_request.method
+    drf_request.method = method.upper()
+    try:
+        # 3. 实例化 ViewSet 并跑权限
+        viewset = viewset_cls(kwargs=kwargs)
+        viewset.action = action
+        viewset.request = drf_request
+        viewset.check_permissions(drf_request)
+        return True
+    except PermissionDenied:
+        return False
+    finally:
+        drf_request.method = origin      # 恢复 method
 
 
-# def get_func_btn(func):
-#     def decorator():
-#         kwargs = getattr(func, 'btn_kwargs', {})
-#         return Button(**kwargs)
-#     return decorator
-#
-#
-# def button(**kwargs):
-#     def decorator(func):
-#         func.btn = get_func_btn(func)
-#         func.btn_kwargs = kwargs
-#         return func
-#     return decorator
-def has_create_static(viewset_cls):
-    """没有 request，也能粗略判断 create 会不会被拦"""
-    # 取 ViewSet 上声明的权限类
-    for perm_cls in getattr(viewset_cls, 'permission_classes', []):
-        # 常见“只读”权限类都是这一行逻辑，直接复用
-        if hasattr(perm_cls, 'has_permission'):
-            # 伪造一个 POST 请求对象，只带 method 属性
-            fake_request = type('FakeReq', (), {'method': 'POST'})()
-            if not perm_cls().has_permission(fake_request, viewset_cls()):
-                return False
-    return True
+# 下面四个语义化函数，随便调
+def can_list   (viewset_cls, request) -> bool:
+    return _action_allowed(viewset_cls, request, 'list',   'GET')
 
-def has_delete_static(viewset_cls):
-    """没有 request，也能粗略判断 delete 会不会被拦"""
-    for perm_cls in getattr(viewset_cls, 'permission_classes', []):
-        if hasattr(perm_cls, 'has_permission'):
-            # 伪造 DELETE 请求
-            fake_request = type('FakeReq', (), {'method': 'DELETE'})()
-            if not perm_cls().has_permission(fake_request, viewset_cls()):
-                return False
-    return True
-def has_update_static(viewset_cls):
-    """没有 request，也能粗略判断 update 会不会被拦"""
-    for perm_cls in getattr(viewset_cls, 'permission_classes', []):
-        if hasattr(perm_cls, 'has_permission'):
-            # 伪造 PATCH 请求
-            fake_request = type('FakeReq', (), {'method': 'PATCH'})()
-            if not perm_cls().has_permission(fake_request, viewset_cls()):
-                return False
-    return True
+def can_create (viewset_cls, request) -> bool:
+    return _action_allowed(viewset_cls, request, 'create', 'POST')
+
+def can_update (viewset_cls, request, pk) -> bool:
+    return _action_allowed(viewset_cls, request, 'partial_update', 'PATCH', {'pk': pk})
+
+def can_delete (viewset_cls, request, pk) -> bool:
+    return _action_allowed(viewset_cls, request, 'destroy', 'DELETE', {'pk': pk})
+
+
 class ViewSetCRUD:
-    def __init__(self, view_set: GenericAPIView, basename=None):
+    def __init__(self, view_set: GenericAPIView, request, basename=None):
+        self.request = request
         self.view_set = view_set
         self.serializer = view_set.get_serializer_class()()
         self.view_form = ViewSetForm(view_set, basename)
@@ -97,9 +87,9 @@ class ViewSetCRUD:
         return buttons
 
     def get_create_button(self):
-        if not has_create_static(self.view_set.__class__):
-            return None
-        return Button(
+        if not can_create(self.view_set.__class__, self.request):
+            return []
+        return [Button(
             label="新建",
             level="primary",
             class_name='m-r-xs'
@@ -110,11 +100,11 @@ class ViewSetCRUD:
                 body=self.view_form.to_create_form(),
                 size="md",
             )
-        ))
+        ))]
 
     def get_header_toolbar(self):
 
-        return [self.get_create_button()] + self.get_list_action_button()
+        return self.get_create_button() + self.get_list_action_button()
 
     def get_footer_toolbar(self):
         return [
@@ -137,34 +127,34 @@ class ViewSetCRUD:
         ]
 
     def get_update_button(self):
-        if not has_update_static(self.view_set.__class__):
-            return None
-        return Button(label="修改", level="primary",
-                      action_type="dialog",
-                      dialog=Dialog(
-                          title="修改",
-                          body=self.view_form.to_update_form(),
-                          size="md"
-                      ))
+        if not can_update(self.view_set.__class__, self.request,""):
+            return []
+        return [Button(label="修改", level="primary",
+                       action_type="dialog",
+                       dialog=Dialog(
+                           title="修改",
+                           body=self.view_form.to_update_form(),
+                           size="md"
+                       ))]
 
     def get_delete_button(self):
-        if not has_delete_static(self.view_set.__class__):
-            return None
-        return (Button(label="删除", level="danger",
-                       confirm_text="确定要删除吗？")
-                .add_action(
+        if not can_delete(self.view_set.__class__, self.request,""):
+            return []
+        return [(Button(label="删除", level="danger",
+                        confirm_text="确定要删除吗？")
+                 .add_action(
             'click',
             EventAction(
                 action_type="ajax",
                 api=self.get_delete_api(),
             )
-        ).add_action('click', EventAction(action_type='search', component_id=self.component_id)))
+        ).add_action('click', EventAction(action_type='search', component_id=self.component_id)))]
 
     def get_list_button(self, group=True):
         buttons = [
             *self.get_detail_action_button(),
-            self.get_update_button(),
-            self.get_delete_button()
+            *self.get_update_button(),
+            *self.get_delete_button()
         ]
         if group:
             return [
@@ -193,9 +183,8 @@ class ViewSetCRUD:
             if isinstance(self.view_set.filterset_fields, list):
                 for field in self.view_set.filterset_fields:
                     filter_items.append(
-                        self.view_form.field_to_input(field,no_required=True)
+                        self.view_form.field_to_input(field, no_required=True)
                     )
-
 
         return Form(
             title="筛选",

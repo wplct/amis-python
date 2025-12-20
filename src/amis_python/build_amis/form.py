@@ -110,7 +110,9 @@ class ViewSetForm:
                 self.get_fields(exclude_read_only)]
 
     def get_list_items(self, **kwargs):
-        show_fields = self.serializer.Meta.show_fields or []
+        show_fields = getattr(self.serializer.Meta, 'show_fields', [])
+        if not show_fields:
+            show_fields = [field_name for field_name, field in self.get_fields()]
         return [self.field_to_show(field_name, field, **kwargs) for field_name, field in
                 self.get_fields() if field_name in show_fields]
 
