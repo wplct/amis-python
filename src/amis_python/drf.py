@@ -1,23 +1,27 @@
+import json
+import logging
+import traceback
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exc_handler
+from rest_framework import exceptions as drf_exceptions
 
+logger = logging.getLogger(__name__)
 
+# ---------- 分页 ----------
 class AmisPagination(PageNumberPagination):
     page_size_query_param = "perPage"
 
-
+# ---------- 统一响应体 ----------
 class AmisResponse(Response):
     """
-    统一包装成 { status: 0, msg: 'ok', data: ... }
+    统一包装成 { code: 0, msg: 'ok', data: ... }
     """
-
-    def __init__(self, data=None, code=0, msg='ok',
-                 status=None, template_name=None, headers=None,
-                 exception=False, content_type=None):
+    def __init__(self, data=None, code=0, msg='ok', status=None,
+                 template_name=None, headers=None, exception=False, content_type=None):
         super().__init__(
-            data={'status': code, 'msg': msg, 'data': data},
+            data={'code': code, 'msg': msg, 'data': data},
             status=status,
             template_name=template_name,
             headers=headers,
@@ -25,50 +29,53 @@ class AmisResponse(Response):
             content_type=content_type
         )
 
-
+# ---------- 异常处理 ----------
 def std_exception_handler(exc, context):
-    # 先让 DRF 把原始错误对象转成 dict
-    response = drf_exc_handler(exc, context)
-    if response is not None:
-        # 业务逻辑正常，只是 DRF 抛了 4xx/5xx
+    response = drf_exc_handler(exc, context)          # 先让 DRF 处理
+
+    if isinstance(exc, drf_exceptions.APIException):  # 已知业务异常
+        logger.info('[%s] %s', type(exc).__name__, exc)
         return AmisResponse(
-            data=response.data,
-            code=response.status_code,
-            msg=response.status_text,
-            status=response.status_code,
-            headers=response.headers
+            data=response.data if response else {},
+            code=response.status_code if response else 400,
+            msg=response.status_text if response else 'error',
+            status=200,
+            headers=response.headers if response else {}
         )
-    # DRF 没接住，是更低层的异常（如 500）
+
+    # 程序级异常
+    logger.exception('Unhandled exception: %s', exc)  # 自动带 traceback
     return AmisResponse(
-        data=str(exc),
+        data=traceback.format_exc(),
         code=500,
         msg='服务器内部错误',
-        status=500
+        status=200
     )
 
+# ---------- 通用 ViewSet ----------
 class AmisViewSet(viewsets.ModelViewSet):
-    """
-    统一处理分页、错误返回
-    """
     pagination_class = AmisPagination
 
     def __init_subclass__(cls, **kw):
         super().__init_subclass__(**kw)
-        # 类已经生成，可以扫描自己
+        # 把带 btn 标记的方法反向绑定 viewset
         for name, attr in cls.__dict__.items():
             if getattr(attr, 'btn', False):
                 attr.viewset = cls
 
-
     def dispatch(self, request, *args, **kwargs):
         try:
             response = super().dispatch(request, *args, **kwargs)
-            response.data = {
-                'code': 0,
-                'msg': 'success',
-                'data': response.data
-            }
+            if isinstance(response, dict):
+                return AmisResponse(data=response)
+            if isinstance(response, AmisResponse):
+                return response
+            if isinstance(response, Response):
+                # 把非 200 的 HTTP 状态码也包成 200 返回
+                response.status_code = 200
+                response.data.update({'code': 0, 'msg': 'success'})
+                return response
             return response
         except Exception as exc:
-            # 这里可以写异常日志
-            raise
+            # 统一走上面的异常处理
+            return std_exception_handler(exc, self.get_exception_handler_context())

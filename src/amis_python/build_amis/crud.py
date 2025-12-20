@@ -1,13 +1,13 @@
 # from django.urls import reverse
-
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import GenericAPIView
 from rest_framework.reverse import reverse
 
 from amis_python import Api
 from amis_python.build_amis.form import ViewSetForm
-from amis_python.builder import Button, EventAction, Dialog, Flex, Container, Pagination, ButtonGroup, Card
+from amis_python.builder import Button, EventAction, Dialog, Flex, Container, Pagination, ButtonGroup, Card, BaseModel
 from amis_python.builder.crud import CRUD2, CRUD2Mode, LoadType
-
+from amis_python.builder.form import Form, InputText
 
 
 # def get_dialog(func):
@@ -34,8 +34,36 @@ from amis_python.builder.crud import CRUD2, CRUD2Mode, LoadType
 #         func.btn_kwargs = kwargs
 #         return func
 #     return decorator
+def has_create_static(viewset_cls):
+    """没有 request，也能粗略判断 create 会不会被拦"""
+    # 取 ViewSet 上声明的权限类
+    for perm_cls in getattr(viewset_cls, 'permission_classes', []):
+        # 常见“只读”权限类都是这一行逻辑，直接复用
+        if hasattr(perm_cls, 'has_permission'):
+            # 伪造一个 POST 请求对象，只带 method 属性
+            fake_request = type('FakeReq', (), {'method': 'POST'})()
+            if not perm_cls().has_permission(fake_request, viewset_cls()):
+                return False
+    return True
 
-
+def has_delete_static(viewset_cls):
+    """没有 request，也能粗略判断 delete 会不会被拦"""
+    for perm_cls in getattr(viewset_cls, 'permission_classes', []):
+        if hasattr(perm_cls, 'has_permission'):
+            # 伪造 DELETE 请求
+            fake_request = type('FakeReq', (), {'method': 'DELETE'})()
+            if not perm_cls().has_permission(fake_request, viewset_cls()):
+                return False
+    return True
+def has_update_static(viewset_cls):
+    """没有 request，也能粗略判断 update 会不会被拦"""
+    for perm_cls in getattr(viewset_cls, 'permission_classes', []):
+        if hasattr(perm_cls, 'has_permission'):
+            # 伪造 PATCH 请求
+            fake_request = type('FakeReq', (), {'method': 'PATCH'})()
+            if not perm_cls().has_permission(fake_request, viewset_cls()):
+                return False
+    return True
 class ViewSetCRUD:
     def __init__(self, view_set: GenericAPIView, basename=None):
         self.view_set = view_set
@@ -68,9 +96,10 @@ class ViewSetCRUD:
         buttons = []
         return buttons
 
-    def get_header_toolbar(self):
-
-        return [Button(
+    def get_create_button(self):
+        if not has_create_static(self.view_set.__class__):
+            return None
+        return Button(
             label="新建",
             level="primary",
             class_name='m-r-xs'
@@ -81,12 +110,16 @@ class ViewSetCRUD:
                 body=self.view_form.to_create_form(),
                 size="md",
             )
-        ))] + self.get_list_action_button()
+        ))
+
+    def get_header_toolbar(self):
+
+        return [self.get_create_button()] + self.get_list_action_button()
 
     def get_footer_toolbar(self):
         return [
             Pagination(
-                per_page=5,
+                per_page=10,
                 layout=[
                     "total",
                     "perPage",
@@ -104,6 +137,8 @@ class ViewSetCRUD:
         ]
 
     def get_update_button(self):
+        if not has_update_static(self.view_set.__class__):
+            return None
         return Button(label="修改", level="primary",
                       action_type="dialog",
                       dialog=Dialog(
@@ -113,6 +148,8 @@ class ViewSetCRUD:
                       ))
 
     def get_delete_button(self):
+        if not has_delete_static(self.view_set.__class__):
+            return None
         return (Button(label="删除", level="danger",
                        confirm_text="确定要删除吗？")
                 .add_action(
@@ -141,10 +178,40 @@ class ViewSetCRUD:
     def get_columns(self):
         return self.view_form.get_list_items(static=True)
 
+    def get_filter(self):
+        if not self.view_set.filter_backends:
+            return None
+        filter_items = []
+        if SearchFilter in self.view_set.filter_backends:
+            filter_items.append(
+                InputText(
+                    name="search",
+                    label="搜索",
+                )
+            )
+        if hasattr(self.view_set, 'filterset_fields'):
+            if isinstance(self.view_set.filterset_fields, list):
+                for field in self.view_set.filterset_fields:
+                    filter_items.append(
+                        self.view_form.field_to_input(field,no_required=True)
+                    )
+
+
+        return Form(
+            title="筛选",
+            body=filter_items,
+            mode="inline",
+            actions=[
+                Button(label="清空", action_type="clear"),
+                BaseModel(label="查询", level="primary", type="submit")
+            ]
+        )
+
     def to_crud(self, **kwargs):
         return CRUD2(
             id=f"{self.basename}-crud",
             mode=CRUD2Mode.TABLE2,
+            filter=self.get_filter(),
             api=self.get_api(),
             columns=self.get_columns() + self.get_list_button(),
             header_toolbar=self.get_header_toolbar(),

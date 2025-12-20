@@ -6,14 +6,14 @@ from rest_framework.fields import Field
 from rest_framework.generics import GenericAPIView
 
 from amis_python.builder import BaseModel, Wrapper, Action, EventAction, Image
-from amis_python.builder.form import Form, InputNumber, InputPassword, InputFile, InputImage, Hidden, InputText
+from amis_python.builder.form import Form, InputNumber, InputPassword, InputFile, InputImage, Hidden, InputText, Select
 from amis_python.schema import ImageSerializer
 
 from amis_python.builder import Tpl
 
 
 class ViewSetForm:
-    def __init__(self, view_set: GenericAPIView,serializer_class=None,basename=None):
+    def __init__(self, view_set: GenericAPIView, serializer_class=None, basename=None):
         self.view_set = view_set
         if serializer_class:
             self.serializer = serializer_class()
@@ -31,17 +31,22 @@ class ViewSetForm:
             return 'text'
         if isinstance(field, ImageSerializer):
             return 'image'
+        if isinstance(field, serializers.ModelSerializer):
+            return 'model'
         return None
 
-    def field_to_input(self, field_name: str, field: Field,static=None) -> BaseModel:
+    def field_to_input(self, field_name: str, field: Field=None, static=None,no_required=False) -> BaseModel:
+        if field is None:
+            field = self.serializer.get_fields().get(field_name)
         input_type = self.get_field_type(field)
         title = field.label or field_name
 
         input_base_kwargs = {
             'name': field_name,
             'label': title,
-            "required": field.required,
+            "required": False if no_required else field.required,
             "static": field.read_only,
+            'clearable':True
         }
         if static:
             input_base_kwargs["static"] = True
@@ -55,6 +60,13 @@ class ViewSetForm:
                 receiver="/amis/upload",
                 # drag=True,
                 **input_base_kwargs
+            )
+        if input_type == 'model':
+            objs = field.__class__.Meta.model.objects.all()
+            return Select(
+                name=field_name,
+                label=title,
+                options=field.__class__(objs, many=True).data
             )
         if input_type == 'image':
             base = input_base_kwargs.copy()
@@ -72,7 +84,7 @@ class ViewSetForm:
                             "key": "${key}",
                         }
                     },
-                    value="${"+field_name+".url}",
+                    value="${" + field_name + ".url}",
                 ),
                 Hidden(**input_base_kwargs),
             ])
@@ -82,27 +94,25 @@ class ViewSetForm:
         field_type = self.get_field_type(field)
         title = field.label or field_name
         if field_type == 'image':
-            return Image(src="${"+field_name+".url}",label= title,enlargeAble=True)
-        return Tpl(
-            tpl="${"+field_name+"}",label= title
-        )
+            return Image(src="${" + field_name + ".url}", label=title, enlargeAble=True)
+        if field_type == 'model':
+            return Tpl(tpl="${" + field_name + ".label}", label=title)
+        return Tpl(tpl="${" + field_name + "}", label=title)
 
-    def get_fields(self,exclude_read_only=False):
+    def get_fields(self, exclude_read_only=False):
         for field_name, field in self.serializer.get_fields().items():
             if exclude_read_only and field.read_only:
                 continue
             yield field_name, field
 
-    def get_form_items(self,exclude_read_only=False, **kwargs):
+    def get_form_items(self, exclude_read_only=False, **kwargs):
         return [self.field_to_input(field_name, field, **kwargs) for field_name, field in
                 self.get_fields(exclude_read_only)]
 
     def get_list_items(self, **kwargs):
+        show_fields = self.serializer.Meta.show_fields or []
         return [self.field_to_show(field_name, field, **kwargs) for field_name, field in
-                self.get_fields()]
-
-
-
+                self.get_fields() if field_name in show_fields]
 
     def to_create_form(self, **kwargs):
         _kwargs = {
@@ -146,7 +156,7 @@ class ViewSetForm:
         return reverse(f'{self.basename}-list')
 
     def get_update_api(self):
-        return 'patch:'+reverse(f'{self.basename}-detail', kwargs={'pk': 0}).replace('0', '${id}')
+        return 'patch:' + reverse(f'{self.basename}-detail', kwargs={'pk': 0}).replace('0', '${id}')
 
     def get_detail_api(self):
         return reverse(f'{self.basename}-detail', kwargs={'pk': 0}).replace('0', '${id}')
