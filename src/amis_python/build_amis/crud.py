@@ -110,19 +110,9 @@ class ViewSetCRUD:
         return [
             Pagination(
                 per_page=10,
-                layout=[
-                    "total",
-                    "perPage",
-                    "pager"
-                ],
+                layout=["total","perPage","pager"],
                 mode="normal",
-                per_page_available=[
-                    5,
-                    10,
-                    20,
-                    50,
-                    100
-                ]
+                per_page_available=[5,10,20,50,100]
             ),
         ]
 
