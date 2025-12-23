@@ -20,23 +20,21 @@ def _action_allowed(viewset_cls, request, action: str, method: str, kwargs=None)
     """
     kwargs = kwargs or {}
 
-    # 1. 先造一个 DRF 版本的 request（带上 authenticators 等全套属性）
-    drf_request = APIView().initialize_request(request)
 
-    # 2. 临时改 method
-    origin = drf_request.method
-    drf_request.method = method.upper()
+    # 临时改 method
+    origin = request.method
+    request.method = method.upper()
     try:
         # 3. 实例化 ViewSet 并跑权限
         viewset = viewset_cls(kwargs=kwargs)
         viewset.action = action
-        viewset.request = drf_request
-        viewset.check_permissions(drf_request)
+        viewset.request = request
+        viewset.check_permissions(request)
         return True
     except PermissionDenied:
         return False
     finally:
-        drf_request.method = origin      # 恢复 method
+        request.method = origin      # 恢复 method
 
 
 # 下面四个语义化函数，随便调
@@ -86,7 +84,7 @@ class ViewSetCRUD:
         buttons = []
         return buttons
 
-    def get_create_button(self):
+    def get_create_button(self) -> list:
         if not can_create(self.view_set.__class__, self.request):
             return []
         return [Button(

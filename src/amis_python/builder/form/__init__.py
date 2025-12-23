@@ -8,3 +8,6 @@ from .input_group import InputGroup
 from .input_image import InputImage
 from .hidden import Hidden
 from .input_file import InputFile
+from .switch import Switch
+from .input_kv import InputKV
+from .json_schema import JSONSchema

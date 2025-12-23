@@ -109,14 +109,15 @@
         function renderMainApp() {
             fetch('/amis/config/')
                 .then(response => {
-                    if (response.status === 401) {
+                    if (response.status === 401 || response.status === 403) {
                         // 未登录，渲染登录页面
                         renderLoginPage();
                         return Promise.reject('未登录');
                     }
                     return response.json();
                 })
-                .then(amisJSON => {
+                .then(r => {
+                    const amisJSON = r.data;
                     // 渲染 AMIS 应用
                     let amisInstance = amis.embed(
                         '#root',
@@ -129,7 +130,43 @@
                         {
                             // 主题配置
                             theme: 'antd',
+                            // 全局 api 适配器。
+                            // 另外在 amis 配置项中的 api 也可以配置适配器，针对某个特定接口单独处理。
+                            // responseAdaptor(api, payload, query, request, response) {
+                            //   return payload;
+                            // },
+                            // 请求适配器，用于添加 Django CSRF 令牌
+                            requestAdaptor(api) {
+                                // 从 cookie 中获取 CSRF 令牌
+                                function getCookie(name) {
+                                    let cookieValue = null;
+                                    if (document.cookie && document.cookie !== '') {
+                                        const cookies = document.cookie.split(';');
+                                        for (let i = 0; i < cookies.length; i++) {
+                                            const cookie = cookies[i].trim();
+                                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    return cookieValue;
+                                }
 
+                                const csrftoken = getCookie('csrftoken');
+
+                                // 安全地添加 X-CSRFToken 请求头
+                                if (csrftoken) {
+                                    console.log('CSRF token found:', csrftoken);
+                                    console.log(api)
+                                    // api.headers 可能不存在，先确保它是一个对象
+                                    api.headers = api.headers || {};
+                                    api.headers['X-CSRFToken'] = csrftoken;
+                                }
+
+                                // 必须返回 api 对象
+                                return api;
+                            },
                             // 自定义 updateLocation 方法
                             updateLocation: (location, replace) => {
                                 location = normalizeLink(location);
@@ -210,7 +247,8 @@
         function renderLoginPage() {
             fetch('/amis/login/config/')
                 .then(response => response.json())
-                .then(loginJSON => {
+                .then(r => {
+                    let loginJSON = r.data;
                     // 渲染登录页面
                     let amisInstance = amis.embed(
                         '#root',
@@ -223,6 +261,42 @@
                         {
                             // 主题配置
                             theme: 'antd',
+                            // 全局 api 适配器。
+                            responseAdaptor(api, payload, query, request, response) {
+                                return payload;
+                            },
+                            // 请求适配器，用于添加 Django CSRF 令牌
+                            requestAdaptor(api) {
+                                // 从 cookie 中获取 CSRF 令牌
+                                function getCookie(name) {
+                                    let cookieValue = null;
+                                    if (document.cookie && document.cookie !== '') {
+                                        const cookies = document.cookie.split(';');
+                                        for (let i = 0; i < cookies.length; i++) {
+                                            const cookie = cookies[i].trim();
+                                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    return cookieValue;
+                                }
+
+                                const csrftoken = getCookie('csrftoken');
+
+                                // 安全地添加 X-CSRFToken 请求头
+                                if (csrftoken) {
+                                    console.log('CSRF token found:', csrftoken);
+                                    console.log(api)
+                                    // api.headers 可能不存在，先确保它是一个对象
+                                    api.headers = api.headers || {};
+                                    api.headers['X-CSRFToken'] = csrftoken;
+                                }
+
+                                // 必须返回 api 对象
+                                return api;
+                            },
                             // 登录成功后的处理
                             onEvent: (event) => {
                             }

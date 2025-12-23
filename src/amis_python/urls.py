@@ -3,8 +3,10 @@ from django.views.static import serve
 from django.views.generic import RedirectView
 import os
 
-from .views import get_amis_app_config, get_page_config, amis_index, get_login_config, login, logout, current_user, \
+from .views import amis_index, GetAmisAppConfig, GetPageConfig, GetLoginConfig, LoginView, LogoutView, CurrentUserView, \
     UploadView, UploadImageView
+
+UploadView, UploadImageView
 
 # 获取当前应用的静态目录路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -57,16 +59,16 @@ urlpatterns = [
     # 应用首页
     path('', amis_index, name='amis_index'),
     # 登录页面配置路由
-    path('login/config/', get_login_config, name='get_login_config'),
+    path('login/config/', GetLoginConfig.as_view(), name='get_login_config'),
     # 应用配置路由
-    path('config/', get_amis_app_config, name='get_amis_app_config'),
-    path('page/', get_page_config, name='get_page_config'),
+    path('config/', GetAmisAppConfig.as_view(), name='get_amis_app_config'),
+    path('page/', GetPageConfig.as_view(), name='get_page_config'),
     # 页面配置路由（动态路由，匹配任意页面路径）
-    path('page/<path:page_path>', get_page_config, name='get_page_config'),
+    path('page/<path:page_path>', GetPageConfig.as_view(), name='get_page_config'),
     # API路由，必须在静态文件路由之前
-    path('api/login', login, name='login'),
-    path('api/logout', logout, name='logout'),
-    path('api/current_user', current_user, name='current_user'),
+    path('api/login', LoginView.as_view(), name='login'),
+    path('api/logout', LogoutView.as_view(), name='logout'),
+    path('api/current_user', CurrentUserView.as_view(), name='current_user'),
     path('upload', UploadView.as_view(), name='upload'),
     path('upload_img', UploadImageView.as_view(), name='upload_img'),
     # edit路径重定向到edit/index.html

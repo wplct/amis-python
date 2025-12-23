@@ -3,11 +3,13 @@ pyproject.toml
 src/amis_python/__init__.py
 src/amis_python/apps.py
 src/amis_python/drf.py
+src/amis_python/drf_permission.py
 src/amis_python/middleware.py
 src/amis_python/models.py
 src/amis_python/ninja_api.py
 src/amis_python/registry.py
 src/amis_python/schema.py
+src/amis_python/serializers.py
 src/amis_python/urls.py
 src/amis_python/views.py
 src/amis_python.egg-info/PKG-INFO
@@ -25,8 +27,10 @@ src/amis_python/builder/base.py
 src/amis_python/builder/button.py
 src/amis_python/builder/button_group.py
 src/amis_python/builder/dialog.py
+src/amis_python/builder/divider.py
 src/amis_python/builder/event_action.py
 src/amis_python/builder/image.py
+src/amis_python/builder/service.py
 src/amis_python/builder/tabs.py
 src/amis_python/builder/tpl.py
 src/amis_python/builder/utils.py
@@ -59,6 +63,7 @@ src/amis_python/builder/layout/page.py
 src/amis_python/builder/layout/pagination.py
 src/amis_python/builder/layout/panel.py
 src/amis_python/migrations/0001_initial.py
+src/amis_python/migrations/0002_alter_file_id.py
 src/amis_python/migrations/__init__.py
 src/amis_python/static/amis/ang-ie11.css
 src/amis_python/static/amis/ang.css
@@ -482,4 +487,5 @@ src/amis_python/tests/test_input_number.py
 src/amis_python/tests/test_input_text.py
 src/amis_python/tests/test_select.py
 src/amis_python/tests/test_tabs.py
+src/amis_python/tests/test_views.py
 src/amis_python/tests/test_wrapper.py

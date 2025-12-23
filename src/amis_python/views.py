@@ -1,16 +1,12 @@
-import hashlib
 import uuid
 
-from django.contrib.auth.decorators import login_required
-from django.core.files.base import ContentFile
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse
 import os
-from django.contrib.auth import authenticate, login as django_login, logout as django_logout
+from django.contrib.auth import  login as django_login, logout as django_logout
 from django.utils.decorators import method_decorator
-from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-import json
-
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.views.decorators.csrf import ensure_csrf_cookie
 from . import Page
 from .builder.layout import Container, Panel
 
@@ -20,7 +16,8 @@ from .builder.form.input_text import InputText
 from .builder.form.input_password import InputPassword
 from .builder.button import Button
 from .builder.api import Api
-
+from .drf import AmisResponse
+from .serializers import FileSerializer, LoginSerializer
 
 def get_login_page() -> dict:
     """
@@ -107,43 +104,35 @@ def get_login_page() -> dict:
     return login_page.model_dump()
 
 
-def get_amis_app_config(request) -> JsonResponse:
+class GetAmisAppConfig(APIView):
     """
     获取 amis 应用配置
-    
-    Args:
-        request: Django 请求对象
-        
-    Returns:
-        JsonResponse，包含 amis 应用配置
     """
-    # 检查用户是否已登录
-    if not request.user.is_authenticated:
-        return JsonResponse({"error": "未登录"}, status=401)
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        if get_default_app() is None:
+            return AmisResponse(code=500, msg="Default amis app not registered", data={})
+        return AmisResponse(data=get_default_app().model_dump())
 
-    if get_default_app() is None:
-        return JsonResponse({"error": "Default amis app not registered"}, status=500)
-    return JsonResponse(get_default_app().model_dump())
 
-
-def get_page_config(request, page_path: str=None) -> JsonResponse:
+class GetPageConfig(APIView):
     """
     获取页面配置
     """
-    # 检查用户是否已登录
-    if not request.user.is_authenticated:
-        return JsonResponse({"error": "未登录"}, status=401)
-    if page_path is None:
-        page = get_page('/')
-        return JsonResponse(page)
-    page_path = '/' + page_path
-    page = get_page(page_path)
-    if callable(page):
-        page = page(request)
-    if isinstance(page, Page):
-        return JsonResponse(page.model_dump())
-    return JsonResponse(page)
-
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, page_path: str=None):
+        if page_path is None:
+            page = get_page('/')
+            return AmisResponse(data=page)
+        page_path = '/' + page_path
+        page = get_page(page_path)
+        if callable(page):
+            page = page(request)
+        if isinstance(page, Page):
+            return AmisResponse(data=page.model_dump())
+        return AmisResponse(data=page)
 
 def amis_index(request) -> HttpResponse:
     """
@@ -158,81 +147,79 @@ def amis_index(request) -> HttpResponse:
     if os.path.exists(index_path):
         with open(index_path, 'r', encoding='utf-8') as f:
             return HttpResponse(f.read(), content_type='text/html')
-
     # 否则返回 404
     return HttpResponse(f"Index.html not found at {index_path}", status=404)
 
 
-def get_login_config(request) -> JsonResponse:
+class GetLoginConfig(APIView):
     """
     获取登录页面配置
     """
-    login_page = get_login_page()
-    return JsonResponse(login_page)
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        login_page = get_login_page()
+        return AmisResponse(data=login_page)
 
-
-@csrf_exempt
-def login(request) -> JsonResponse:
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class LoginView(APIView):
     """
     用户登录API
     """
-    if request.method == 'POST':
-        try:
-            # 解析请求体
-            data = json.loads(request.body)
-            username = data.get('username')
-            password = data.get('password')
-
-            # 验证用户名和密码
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                # 登录成功，设置session
-                django_login(request, user)
-                return JsonResponse({"username": user.username})
-            else:
-                # 登录失败
-                return JsonResponse({"status": 1, "msg": "用户名或密码错误"}, status=400)
-        except json.JSONDecodeError:
-            return JsonResponse({"status": 1, "msg": "无效的请求体"}, status=400)
-        except Exception as e:
-            return JsonResponse({"status": 1, "msg": str(e)}, status=400)
-    return JsonResponse({"status": 1, "msg": "仅支持POST请求"}, status=405)
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            django_login(request, user)
+            return AmisResponse(data={"username": user.username})
+        return AmisResponse(code=400, msg=serializer.errors, data={})
 
 
-@csrf_exempt
-def logout(request) -> JsonResponse:
+class LogoutView(APIView):
     """
     用户登出API
     """
-    if request.method == 'POST':
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
         django_logout(request)
-        return JsonResponse({"status": 0, "msg": "登出成功"})
-    return JsonResponse({"status": 1, "msg": "仅支持POST请求"}, status=405)
+        return AmisResponse(data={"status": 0, "msg": "登出成功"})
 
 
-@csrf_exempt
-def current_user(request) -> JsonResponse:
+class CurrentUserView(APIView):
     """
     获取当前登录用户信息API
     """
-    if request.method == 'GET':
-        if request.user.is_authenticated:
-            return JsonResponse({"status": 0, "msg": "", "data": {"username": request.user.username}})
-        else:
-            return JsonResponse({"status": 1, "msg": "未登录"})
-    return JsonResponse({"status": 1, "msg": "仅支持GET请求"}, status=405)
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        return AmisResponse(data={"status": 0, "msg": "", "data": {"username": request.user.username}})
 
 
-@method_decorator(login_required, name='dispatch')
-class UploadView(View):
-    http_method_names = ['post']
+class UnauthorizedUserView(APIView):
+    """
+    未登录用户访问时的处理
+    """
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        return AmisResponse(code=1, msg="未登录", data={})
 
+
+class UploadView(APIView):
+    """
+    文件上传API
+    """
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request):
         from amis_python.models import File
 
         uploaded = request.FILES.get('file')
         if not uploaded:
-            return JsonResponse({'error': 'missing file'}, status=400)
+            return AmisResponse(code=400, msg='missing file', data={})
 
         # 先建实例
         obj = File(
@@ -246,7 +233,7 @@ class UploadView(View):
         obj.file = uploaded
         obj.save()
 
-        return JsonResponse({
+        return AmisResponse(data={
             'status': 0,
             'msg': '上传成功',
             'data': {
@@ -256,16 +243,19 @@ class UploadView(View):
             }
         })
 
-@method_decorator(login_required, name='dispatch')
-class UploadImageView(View):
-    http_method_names = ['post']
 
+class UploadImageView(APIView):
+    """
+    图片上传API
+    """
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request):
         from amis_python.models import File
 
         uploaded = request.FILES.get('file')
         if not uploaded:
-            return JsonResponse({'error': 'missing file'}, status=400)
+            return AmisResponse(code=400, msg='missing file', data={})
 
         # 先建实例
         obj = File(
@@ -279,7 +269,7 @@ class UploadImageView(View):
         obj.file = uploaded
         obj.save()
 
-        return JsonResponse({
+        return AmisResponse(data={
             'status': 0,
             'msg': '上传成功',
             'data': {

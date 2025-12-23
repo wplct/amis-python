@@ -39,7 +39,7 @@ def std_exception_handler(exc, context):
             data=response.data if response else {},
             code=response.status_code if response else 400,
             msg=response.status_text if response else 'error',
-            status=200,
+            status=response.status_code,
             headers=response.headers if response else {}
         )
 
@@ -49,7 +49,7 @@ def std_exception_handler(exc, context):
         data=traceback.format_exc(),
         code=500,
         msg='服务器内部错误',
-        status=200
+        status=500
     )
 
 # ---------- 通用 ViewSet ----------
@@ -71,8 +71,6 @@ class AmisViewSet(viewsets.ModelViewSet):
             if isinstance(response, AmisResponse):
                 return response
             if isinstance(response, Response):
-                # 把非 200 的 HTTP 状态码也包成 200 返回
-                response.status_code = 200
                 response.data.update({'code': 0, 'msg': 'success'})
                 return response
             return response
