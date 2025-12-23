@@ -17,8 +17,8 @@ class Switch(FormItem):
     # ==================== 状态相关属性 ====================
     checked_value: Optional[Any] = Field(None, description="选中时的值，默认值为 True")
     un_checked_value: Optional[Any] = Field(None, description="未选中时的值，默认值为 False")
-    checked: Optional[bool] = Field(None, description="是否默认选中")
-    disabled: Optional[bool] = Field(None, description="是否禁用")
+    checked: Optional[Any] = Field(None, description="是否默认选中")
+    disabled: Optional[Any] = Field(None, description="是否禁用")
 
     # ==================== 样式相关属性 ====================
     size: Optional[Literal["sm", "md", "lg"]] = Field(None, description="开关大小，默认值为 'md'")

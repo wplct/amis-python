@@ -6,7 +6,8 @@ from rest_framework.fields import Field
 from rest_framework.generics import GenericAPIView
 
 from amis_python.builder import BaseModel, Wrapper, Action, EventAction, Image
-from amis_python.builder.form import Form, InputNumber, InputPassword, InputFile, InputImage, Hidden, InputText, Select
+from amis_python.builder.form import Form, InputNumber, InputPassword, InputFile, InputImage, Hidden, InputText, Select, \
+    Switch
 from amis_python.schema import ImageSerializer
 
 from amis_python.builder import Tpl
@@ -33,6 +34,8 @@ class ViewSetForm:
             return 'image'
         if isinstance(field, serializers.ModelSerializer):
             return 'model'
+        if isinstance(field, serializers.BooleanField):
+            return 'bool'
         return None
 
     def field_to_input(self, field_name: str, field: Field=None, static=None,no_required=False) -> BaseModel:
@@ -88,6 +91,8 @@ class ViewSetForm:
                 ),
                 Hidden(**input_base_kwargs),
             ])
+        if input_type == 'bool':
+            return Switch(**input_base_kwargs)
         return InputText(**input_base_kwargs)
 
     def field_to_show(self, field_name, field, **kwargs):
@@ -97,6 +102,8 @@ class ViewSetForm:
             return Image(src="${" + field_name + ".url}", label=title, enlargeAble=True)
         if field_type == 'model':
             return Tpl(tpl="${" + field_name + ".label}", label=title)
+        if field_type == 'bool':
+            return Tpl(tpl="${" + field_name + "?'是':'否'}", label=title)
         return Tpl(tpl="${" + field_name + "}", label=title)
 
     def get_fields(self, exclude_read_only=False):
