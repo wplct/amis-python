@@ -39,6 +39,7 @@
     (function () {
         let amis = amisRequire('amis/embed');
         const match = amisRequire('path-to-regexp').match;
+        let amisInstance = null;
 
         // 使用history库创建hash模式的history对象
         const history = History.createHashHistory();
@@ -105,6 +106,144 @@
             return decodeURI(pathname) === link;
         }
 
+        // 通用的 AMIS 配置
+        const amisOptions = {
+            // 主题配置
+            theme: 'antd',
+            // 全局 api 适配器
+            responseAdaptor(api, payload, query, request, response) {
+                return payload;
+            },
+            // 请求适配器，用于添加 Django CSRF 令牌
+            requestAdaptor(api) {
+                // 从 cookie 中获取 CSRF 令牌
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+
+                const csrftoken = getCookie('csrftoken');
+
+                // 安全地添加 X-CSRFToken 请求头
+                if (csrftoken) {
+                    console.log('CSRF token found:', csrftoken);
+                    console.log(api)
+                    // api.headers 可能不存在，先确保它是一个对象
+                    api.headers = api.headers || {};
+                    api.headers['X-CSRFToken'] = csrftoken;
+                }
+
+                // 必须返回 api 对象
+                return api;
+            },
+            // 自定义 updateLocation 方法
+            updateLocation: (location, replace) => {
+                location = normalizeLink(location);
+                if (location === 'goBack') {
+                    return history.goBack();
+                } else if (
+                    (!/^https?\:\/\//.test(location) &&
+                        location ===
+                        history.location.pathname + history.location.search) ||
+                    location === history.location.href
+                ) {
+                    // 目标地址和当前地址一样，不处理，免得重复刷新
+                    return;
+                } else if (/^https?\:\/\//.test(location) || !history) {
+                    return (window.location.href = location);
+                }
+
+                history[replace ? 'replace' : 'push'](location);
+            },
+
+            // 自定义 jumpTo 方法
+            jumpTo: (to, action) => {
+                console.log('jumpTo', to, action);
+                if (to === 'goBack') {
+                    return history.goBack();
+                }
+
+                to = normalizeLink(to);
+
+                if (isCurrentUrl(to)) {
+                    return;
+                }
+
+                if (action && action.actionType === 'url') {
+                    action.blank === false
+                        ? (window.location.href = to)
+                        : window.open(to, '_blank');
+                    return;
+                } else if (action && action.blank) {
+                    window.open(to, '_blank');
+                    return;
+                }
+
+                if (/^https?:\/\//.test(to)) {
+                    window.location.href = to;
+                } else if (
+                    (!/^https?\:\/\//.test(to) &&
+                        to === history.location.pathname + history.location.search) ||
+                    to === history.location.href
+                ) {
+                    // do nothing
+                } else {
+                    history.push(to);
+                }
+            },
+
+            // 自定义 isCurrentUrl 方法
+            isCurrentUrl: isCurrentUrl
+        };
+
+        // 渲染 AMIS 应用
+        function renderAmisApp(jsonConfig, customOptions = {}) {
+            // 合并基础配置和自定义配置
+            const options = {
+                ...amisOptions,
+                ...customOptions
+            };
+
+            if (amisInstance) {
+                // 更新现有实例
+                amisInstance.updateProps({
+                    schema: jsonConfig,
+                    location: history.location,
+                    data: {},
+                    context: {}
+                });
+            } else {
+                // 创建新实例
+                amisInstance = amis.embed(
+                    '#root',
+                    jsonConfig,
+                    {
+                        location: history.location,
+                        data: {},
+                        context: {}
+                    },
+                    options
+                );
+
+                // 监听历史记录变化，更新 AMIS 实例的 props
+                history.listen(state => {
+                    amisInstance.updateProps({
+                        location: state.location || state
+                    });
+                });
+            }
+        }
+
         // 渲染主应用
         function renderMainApp() {
             fetch('/amis/config/')
@@ -119,121 +258,7 @@
                 .then(r => {
                     const amisJSON = r.data;
                     // 渲染 AMIS 应用
-                    let amisInstance = amis.embed(
-                        '#root',
-                        amisJSON,
-                        {
-                            location: history.location,
-                            data: {},
-                            context: {}
-                        },
-                        {
-                            // 主题配置
-                            theme: 'antd',
-                            // 全局 api 适配器。
-                            // 另外在 amis 配置项中的 api 也可以配置适配器，针对某个特定接口单独处理。
-                            // responseAdaptor(api, payload, query, request, response) {
-                            //   return payload;
-                            // },
-                            // 请求适配器，用于添加 Django CSRF 令牌
-                            requestAdaptor(api) {
-                                // 从 cookie 中获取 CSRF 令牌
-                                function getCookie(name) {
-                                    let cookieValue = null;
-                                    if (document.cookie && document.cookie !== '') {
-                                        const cookies = document.cookie.split(';');
-                                        for (let i = 0; i < cookies.length; i++) {
-                                            const cookie = cookies[i].trim();
-                                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    return cookieValue;
-                                }
-
-                                const csrftoken = getCookie('csrftoken');
-
-                                // 安全地添加 X-CSRFToken 请求头
-                                if (csrftoken) {
-                                    console.log('CSRF token found:', csrftoken);
-                                    console.log(api)
-                                    // api.headers 可能不存在，先确保它是一个对象
-                                    api.headers = api.headers || {};
-                                    api.headers['X-CSRFToken'] = csrftoken;
-                                }
-
-                                // 必须返回 api 对象
-                                return api;
-                            },
-                            // 自定义 updateLocation 方法
-                            updateLocation: (location, replace) => {
-                                location = normalizeLink(location);
-                                if (location === 'goBack') {
-                                    return history.goBack();
-                                } else if (
-                                    (!/^https?\:\/\//.test(location) &&
-                                        location ===
-                                        history.location.pathname + history.location.search) ||
-                                    location === history.location.href
-                                ) {
-                                    // 目标地址和当前地址一样，不处理，免得重复刷新
-                                    return;
-                                } else if (/^https?\:\/\//.test(location) || !history) {
-                                    return (window.location.href = location);
-                                }
-
-                                history[replace ? 'replace' : 'push'](location);
-                            },
-
-                            // 自定义 jumpTo 方法
-                            jumpTo: (to, action) => {
-                                console.log('jumpTo', to, action);
-                                if (to === 'goBack') {
-                                    return history.goBack();
-                                }
-
-                                to = normalizeLink(to);
-
-                                if (isCurrentUrl(to)) {
-                                    return;
-                                }
-
-                                if (action && action.actionType === 'url') {
-                                    action.blank === false
-                                        ? (window.location.href = to)
-                                        : window.open(to, '_blank');
-                                    return;
-                                } else if (action && action.blank) {
-                                    window.open(to, '_blank');
-                                    return;
-                                }
-
-                                if (/^https?:\/\//.test(to)) {
-                                    window.location.href = to;
-                                } else if (
-                                    (!/^https?\:\/\//.test(to) &&
-                                        to === history.location.pathname + history.location.search) ||
-                                    to === history.location.href
-                                ) {
-                                    // do nothing
-                                } else {
-                                    history.push(to);
-                                }
-                            },
-
-                            // 自定义 isCurrentUrl 方法
-                            isCurrentUrl: isCurrentUrl
-                        }
-                    );
-
-                    // 监听历史记录变化，更新 AMIS 实例的 props
-                    history.listen(state => {
-                        amisInstance.updateProps({
-                            location: state.location || state
-                        });
-                    });
+                    renderAmisApp(amisJSON);
                 })
                 .catch(error => {
                     if (error !== '未登录') {
@@ -249,59 +274,11 @@
                 .then(response => response.json())
                 .then(r => {
                     let loginJSON = r.data;
-                    // 渲染登录页面
-                    let amisInstance = amis.embed(
-                        '#root',
-                        loginJSON,
-                        {
-                            location: history.location,
-                            data: {},
-                            context: {}
-                        },
-                        {
-                            // 主题配置
-                            theme: 'antd',
-                            // 全局 api 适配器。
-                            responseAdaptor(api, payload, query, request, response) {
-                                return payload;
-                            },
-                            // 请求适配器，用于添加 Django CSRF 令牌
-                            requestAdaptor(api) {
-                                // 从 cookie 中获取 CSRF 令牌
-                                function getCookie(name) {
-                                    let cookieValue = null;
-                                    if (document.cookie && document.cookie !== '') {
-                                        const cookies = document.cookie.split(';');
-                                        for (let i = 0; i < cookies.length; i++) {
-                                            const cookie = cookies[i].trim();
-                                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    return cookieValue;
-                                }
-
-                                const csrftoken = getCookie('csrftoken');
-
-                                // 安全地添加 X-CSRFToken 请求头
-                                if (csrftoken) {
-                                    console.log('CSRF token found:', csrftoken);
-                                    console.log(api)
-                                    // api.headers 可能不存在，先确保它是一个对象
-                                    api.headers = api.headers || {};
-                                    api.headers['X-CSRFToken'] = csrftoken;
-                                }
-
-                                // 必须返回 api 对象
-                                return api;
-                            },
-                            // 登录成功后的处理
-                            onEvent: (event) => {
-                            }
+                    // 渲染登录页面，添加登录成功后的处理
+                    renderAmisApp(loginJSON, {
+                        onEvent: (event) => {
                         }
-                    );
+                    });
                 })
                 .catch(error => {
                     console.error('Failed to load login config:', error);
