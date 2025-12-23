@@ -2,9 +2,10 @@ from typing import Optional, Any, Dict, Union
 from pydantic import Field
 
 from amis_python.builder import BaseModel
+from amis_python.builder.form import FormItem
 
 
-class JSONSchema(BaseModel):
+class JSONSchema(FormItem):
     """
     amis JSONSchema 组件完整 Pydantic 模型
     对应组件类型: type: "json-schema"

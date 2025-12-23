@@ -92,7 +92,19 @@ class ViewSetForm:
                 Hidden(**input_base_kwargs),
             ])
         if input_type == 'bool':
-            return Switch(**input_base_kwargs)
+            return Select(
+                options=[
+                    {
+                        "label": "是",
+                        "value": True
+                    },
+                    {
+                        "label": "否",
+                        "value": False
+                    }
+                ],
+                **input_base_kwargs
+            )
         return InputText(**input_base_kwargs)
 
     def field_to_show(self, field_name, field, **kwargs):
