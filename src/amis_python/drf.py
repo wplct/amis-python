@@ -20,8 +20,9 @@ class AmisResponse(Response):
     """
     def __init__(self, data=None, code=0, msg='ok', status=None,
                  template_name=None, headers=None, exception=False, content_type=None):
+
         super().__init__(
-            data={'code': code, 'msg': msg, 'data': data},
+            data={'status': code, 'msg': msg, 'data': data},
             status=status,
             template_name=template_name,
             headers=headers,
@@ -32,7 +33,18 @@ class AmisResponse(Response):
 # ---------- 异常处理 ----------
 def std_exception_handler(exc, context):
     response = drf_exc_handler(exc, context)          # 先让 DRF 处理
-
+    if isinstance(exc, drf_exceptions.ValidationError):
+        logger.info('[%s] %s', type(exc).__name__, exc)
+        exc_str = ""
+        for key, value in exc.detail.items():
+            exc_str += f'{key}: {"".join([str(value) for value in value])}\n'
+        return AmisResponse(
+            data=response.data if response else {},
+            code=response.status_code if response else 400,
+            msg=exc_str,
+            status=response.status_code,
+            headers=response.headers if response else {}
+        )
     if isinstance(exc, drf_exceptions.APIException):  # 已知业务异常
         logger.info('[%s] %s', type(exc).__name__, exc)
         return AmisResponse(
@@ -48,7 +60,7 @@ def std_exception_handler(exc, context):
     return AmisResponse(
         data=traceback.format_exc(),
         code=500,
-        msg='服务器内部错误',
+        msg=f'服务器内部错误:{exc}',
         status=500
     )
 
@@ -71,9 +83,14 @@ class AmisViewSet(viewsets.ModelViewSet):
             if isinstance(response, AmisResponse):
                 return response
             if isinstance(response, Response):
+                if response.data is None:
+                    response.data = {}
                 response.data.update({'code': 0, 'msg': 'success'})
                 return response
             return response
         except Exception as exc:
             # 统一走上面的异常处理
             return std_exception_handler(exc, self.get_exception_handler_context())
+
+    def success(self, data=None):
+        return AmisResponse(data=data)

@@ -112,6 +112,11 @@
             theme: 'antd',
             // 全局 api 适配器
             responseAdaptor(api, payload, query, request, response) {
+                console.log('API:', api)
+                console.log('Payload:', payload)
+                console.log('Query:', query)
+                console.log('Request:', request)
+                console.log('Response:', response)
                 return payload;
             },
             // 请求适配器，用于添加 Django CSRF 令牌

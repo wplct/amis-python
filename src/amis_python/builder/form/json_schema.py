@@ -15,5 +15,5 @@ class JSONSchema(FormItem):
     type: Optional[str] = Field("json-schema", description="指定为 json-schema 组件")
     name: Optional[str] = Field(None, description="组件名称，用于数据域通信")
     label: Optional[str] = Field(None, description="组件标题")
-    schema: Optional[Union[Dict[str, Any], str]] = Field(None, description="指定 json-schema")
+    # schema: Optional[Union[Dict[str, Any], str]] = Field(None, description="指定 json-schema")
     formula: Optional[Dict[str, Any]] = Field(None, description="公式配置")

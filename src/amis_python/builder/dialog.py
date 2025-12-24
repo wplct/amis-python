@@ -28,5 +28,5 @@ class Dialog(BaseModel):
     show_loading: Optional[bool] = Field(None, description="是否在弹框左下角显示 loading 动画")
     disabled: Optional[bool] = Field(None, description="如果设置此属性，则该 Dialog 只读没有提交操作")
     draggable: Optional[bool] = Field(None, description="是否支持拖拽 Dialog")
-    actions: Optional[List[Dict[str, Any]]] = Field(None, description="底部按钮配置，默认显示【确认】和【取消】")
+    actions: Optional[List[Any]] = Field(None, description="底部按钮配置，默认显示【确认】和【取消】")
     data: Optional[Dict[str, Any]] = Field(None, description="支持数据映射，如果不设定将默认继承触发按钮的上下文数据")
