@@ -30,4 +30,4 @@ class Service(BaseModel):
     retry_interval: Optional[int] = Field(1000, description="重试间隔")
     transform: Optional[Dict[str, Any]] = Field(None, description="数据转换配置")
     response_data: Optional[Dict[str, Any]] = Field(None, description="响应数据处理")
-
+    schema_api: Optional[Any] = Field(None, description="schema API 配置")
