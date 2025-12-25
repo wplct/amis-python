@@ -234,14 +234,10 @@ class UploadView(APIView):
         obj.save()
 
         return AmisResponse(data={
-            'status': 0,
-            'msg': '上传成功',
-            'data': {
                 'value': obj.id,
                 'url': obj.file.url,
                 'name': obj.file.name,
-            }
-        })
+            },msg='上传成功')
 
 
 class UploadImageView(APIView):
@@ -270,10 +266,6 @@ class UploadImageView(APIView):
         obj.save()
 
         return AmisResponse(data={
-            'status': 0,
-            'msg': '上传成功',
-            'data': {
                 'value': obj.file.url,
                 'id': obj.id,
-            }
-        })
+            },msg='上传成功')
