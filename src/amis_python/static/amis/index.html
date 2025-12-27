@@ -219,35 +219,27 @@
                 ...customOptions
             };
 
-            if (amisInstance) {
-                // 更新现有实例
-                amisInstance.updateProps({
-                    schema: jsonConfig,
+
+            // 创建新实例
+            amisInstance = amis.embed(
+                '#root',
+                jsonConfig,
+                {
                     location: history.location,
                     data: {},
-                    context: {}
-                });
-            } else {
-                // 创建新实例
-                amisInstance = amis.embed(
-                    '#root',
-                    jsonConfig,
-                    {
-                        location: history.location,
-                        data: {},
-                        context: {},
-                        locale: 'zh-CN'
-                    },
-                    options
-                );
+                    context: {},
+                    locale: 'zh-CN'
+                },
+                options
+            );
 
-                // 监听历史记录变化，更新 AMIS 实例的 props
-                history.listen(state => {
-                    amisInstance.updateProps({
-                        location: state.location || state
-                    });
+            // 监听历史记录变化，更新 AMIS 实例的 props
+            history.listen(state => {
+                amisInstance.updateProps({
+                    location: state.location || state
                 });
-            }
+            });
+
         }
 
         // 渲染主应用
