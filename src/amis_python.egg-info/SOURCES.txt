@@ -50,10 +50,13 @@ src/amis_python/builder/form/hidden.py
 src/amis_python/builder/form/input_file.py
 src/amis_python/builder/form/input_group.py
 src/amis_python/builder/form/input_image.py
+src/amis_python/builder/form/input_kv.py
 src/amis_python/builder/form/input_number.py
 src/amis_python/builder/form/input_password.py
 src/amis_python/builder/form/input_text.py
+src/amis_python/builder/form/json_schema.py
 src/amis_python/builder/form/select.py
+src/amis_python/builder/form/switch.py
 src/amis_python/builder/layout/__init__.py
 src/amis_python/builder/layout/card.py
 src/amis_python/builder/layout/cards.py
@@ -483,8 +486,10 @@ src/amis_python/tests/test_hidden.py
 src/amis_python/tests/test_input_file.py
 src/amis_python/tests/test_input_group.py
 src/amis_python/tests/test_input_image.py
+src/amis_python/tests/test_input_kv.py
 src/amis_python/tests/test_input_number.py
 src/amis_python/tests/test_input_text.py
+src/amis_python/tests/test_json_schema.py
 src/amis_python/tests/test_select.py
 src/amis_python/tests/test_tabs.py
 src/amis_python/tests/test_views.py
