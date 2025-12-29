@@ -52,7 +52,7 @@ def std_exception_handler(exc, context):
             code=response.status_code if response else 400,
             msg=response.status_text if response else 'error',
             status=response.status_code,
-            headers=response.headers if response else {}
+            headers=response.headers if response and hasattr(response, 'headers') else {}
         )
 
     # 程序级异常

@@ -34,9 +34,12 @@
 <div id="root" class="app-wrapper"></div>
 <script src="sdk.js"></script>
 <!-- 引入history库 -->
+<script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/min/moment-with-locales.min.js"></script>
 <script src="./history.js"></script>
 <script type="text/javascript">
     (function () {
+        moment.locale('zh-cn');
+        console.log(moment().subtract(3, 'hours').fromNow());
         let amis = amisRequire('amis/embed');
         const match = amisRequire('path-to-regexp').match;
         let amisInstance = null;

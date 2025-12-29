@@ -131,7 +131,7 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',  # 保持 JSON
     ],
-    'DEFAULT_PAGINATION_CLASS': 'amis_python.drf.AmisPagination',
+    # 'DEFAULT_PAGINATION_CLASS': 'amis_python.drf.AmisPagination',
     'PAGE_SIZE': 10,               # 默认每页条数
     'MAX_PAGE_SIZE': 200,          # 允许前端通过 ?page_size=xxx 拉更大的页
 }
