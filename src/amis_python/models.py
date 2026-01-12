@@ -28,7 +28,7 @@ class File(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     # 可选：关联上传者
-    uploader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    # uploader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
 
     @property
     def url(self):

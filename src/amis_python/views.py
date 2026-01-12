@@ -10,7 +10,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from . import Page
 from .builder.layout import Container, Panel
 
-from .registry import get_default_app, get_page
+from .registry import get_default_app, get_page, get_app
 from .builder.form.form import Form
 from .builder.form.input_text import InputText
 from .builder.form.input_password import InputPassword
@@ -113,6 +113,9 @@ class GetAmisAppConfig(APIView):
     def get(self, request):
         if get_default_app() is None:
             return AmisResponse(code=500, msg="Default amis app not registered", data={})
+        # 尝试从session中获取应用配置
+        if request.session.get("app_config"):
+            return AmisResponse(data=get_app(request.session.get("app_config")))
         return AmisResponse(data=get_default_app().model_dump())
 
 
@@ -124,10 +127,10 @@ class GetPageConfig(APIView):
     
     def get(self, request, page_path: str=None):
         if page_path is None:
-            page = get_page('/')
+            page = get_page(request,'/')
             return AmisResponse(data=page)
         page_path = '/' + page_path
-        page = get_page(page_path)
+        page = get_page(request,page_path)
         if callable(page):
             page = page(request)
         if isinstance(page, Page):

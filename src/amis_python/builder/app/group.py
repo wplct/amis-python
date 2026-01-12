@@ -44,8 +44,8 @@ class AppPageGroupBuilder(BaseModel):
             page = AppPageBuilder(label=label, path=path, url=path)
             self.children.append(page)
             return page
-
-        for child in self.children:
+        new_clildren = sorted(self.children, key=lambda x: len(x.path), reverse=True)
+        for child in new_clildren:
             if path.startswith(child.path):
                 return child.register_page(label,path)
 
@@ -56,7 +56,8 @@ class AppPageGroupBuilder(BaseModel):
         根据路径获取已注册的页面
         """
         # 遍历子节点
-        for child in self.children:
+        new_clildren = sorted(self.children, key=lambda x: len(x.path), reverse=True)
+        for child in new_clildren:
             if path.startswith(child.path):
                 return child.get_page(path)
         raise ValueError(f"未找到页面：{path}")

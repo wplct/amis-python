@@ -1,16 +1,18 @@
 import threading
-from typing import Optional, Union, Callable
+from typing import Optional, Union, Callable, Dict
 
 from . import Page
 from .builder.app import AppBuilder, AppPageGroupBuilder, AppPageBuilder
 
 # 模块级变量：显式初始化为 None，并带类型注解
 _default_amis_app: Optional[AppBuilder] = None
+
+amis_app_map: Dict[str,AppBuilder] = {}
 # 用于保护注册过程的线程锁
 _register_lock = threading.Lock()
 
 
-def register_default_app(app: AppBuilder) -> None:
+def register_default_app(app: AppBuilder,name: str=None) -> None:
     """
     注册默认的 amis 应用实例（仅允许注册一次）
     """
@@ -21,7 +23,10 @@ def register_default_app(app: AppBuilder) -> None:
     with _register_lock:
         if _default_amis_app is not None:
             raise ValueError("Default amis app has already been registered.")
-        _default_amis_app = app
+        if name is not None:
+            amis_app_map[name] = app
+        else:
+            _default_amis_app = app
 
 
 def register_group(group: AppPageGroupBuilder) -> None:
@@ -49,11 +54,17 @@ def get_default_app() -> AppBuilder:
         )
     return _default_amis_app
 
+def get_app(name: str) -> AppBuilder:
+    """
+    根据名称获取已注册的 amis 应用实例
+    """
+    return amis_app_map[name]
 
-def get_page(path: str) -> Union[Page,Callable]:
+def get_page(request,path: str) -> Union[Page,Callable]:
     """
     根据路径获取已注册的页面
     """
-    page = get_default_app().get_page(path)
-
-    return page
+    if request.session.get("app_config"):
+        app = get_app(request.session.get("app_config"))
+        return app.get_page(path)
+    return get_default_app().get_page(path)
