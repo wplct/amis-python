@@ -14,17 +14,16 @@ logger = logging.getLogger(__name__)
 class AmisPagination(PageNumberPagination):
     page_size_query_param = "perPage"
 
-
 # ---------- 统一响应体 ----------
 class AmisResponse(Response):
     """
     统一包装成 { code: 0, msg: 'ok', data: ... }
     """
     def __init__(self, data=None, code=0, msg='ok', status=None,
-                 template_name=None, headers=None, exception=False, content_type=None):
+                 template_name=None, headers=None, exception=False, content_type=None, **kwargs):
 
         super().__init__(
-            data={'status': code, 'msg': msg, 'data': data},
+            data={'status': code, 'msg': msg, 'data': data, **kwargs},
             status=status,
             template_name=template_name,
             headers=headers,
@@ -161,7 +160,7 @@ class AmisViewSet(viewsets.ModelViewSet):
                         response.data = {
                             'status': response.status_code,
                             'msg': '请求失败',
-                            'data': response.data
+                            **response.data
                         }
 
         # 4. 标记已处理

@@ -43,7 +43,8 @@ class AmisPythonConfig(AppConfig):
                                     "api": "post:/amis/api/logout"
                                 },
                                 {
-                                    "actionType": "refresh"
+                                    "actionType": "url",
+                                    "args":{"url": "/"}
                                 }
                             ]
                         }
