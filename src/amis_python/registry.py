@@ -21,8 +21,8 @@ def register_default_app(app: AppBuilder,name: str=None) -> None:
         raise TypeError("app must be an instance of AppBuilder")
 
     with _register_lock:
-        if _default_amis_app is not None:
-            raise ValueError("Default amis app has already been registered.")
+        # if _default_amis_app is not None:
+        #     raise ValueError("Default amis app has already been registered.")
         if name is not None:
             amis_app_map[name] = app
         else:
