@@ -55,7 +55,6 @@ def std_exception_handler(exc, context):
 
     # 2. 获取请求对象（用于判断是否显示详细错误）
     request = context.get('request')
-
     # 3. 处理验证错误
     if isinstance(exc, drf_exceptions.ValidationError):
         logger.info('[%s] %s', type(exc).__name__, exc)

@@ -39,14 +39,14 @@ def register_group(group: AppPageGroupBuilder) -> None:
     get_default_app().register_group(group)
 
 
-def register_page(label: str, path: str, page=None,app_name: str=None) -> AppPageBuilder:
+def register_page(label: str, path: str, page=None,app_name: str=None,visible=True) -> AppPageBuilder:
     """
     注册默认 amis 应用实例的页面
     """
     if app_name:
         app = get_app(app_name)
-        return app.register_page(label, path, page=page)
-    return get_default_app().register_page(label, path, page=page)
+        return app.register_page(label, path, page=page, visible=visible)
+    return get_default_app().register_page(label, path, page=page, visible=visible)
 
 
 def get_default_app() -> AppBuilder:

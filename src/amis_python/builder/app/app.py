@@ -61,7 +61,8 @@ class AppBuilder(BaseModel):
             label: str,
             path: str,
             page: Optional[Page] = None,
-            group_label: Optional[str] = ''
+            group_label: Optional[str] = '',
+            visible=True
     ) -> AppPageBuilder:
         """
         注册页面，需要指定分组
@@ -77,7 +78,7 @@ class AppBuilder(BaseModel):
 
         # 将页面添加到指定分组
         group = self.get_group(group_label)
-        app_page = group.register_page(label, path)
+        app_page = group.register_page(label, path,visible)
         if page:
             app_page.set_page_schema(page)
             app_page.schema_api = f"/amis/page{path}"

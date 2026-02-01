@@ -31,6 +31,7 @@ class AppPageGroupBuilder(BaseModel):
             self,
             label: str,
             path: str,
+            visible: bool = True
     ) -> "AppPageBuilder":
         """
         在当前分组下注册页面
@@ -47,7 +48,7 @@ class AppPageGroupBuilder(BaseModel):
         new_clildren = sorted(self.children, key=lambda x: len(x.path), reverse=True)
         for child in new_clildren:
             if path.startswith(child.path):
-                return child.register_page(label,path)
+                return child.register_page(label,path,visible)
 
         raise ValueError(f"未找到页面：{path}")
 

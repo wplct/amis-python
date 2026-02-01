@@ -48,6 +48,7 @@ class AppPageBuilder(BaseModel):
             self,
             label: str,
             path: str,
+            visible: bool = True
     ) -> "AppPageBuilder":
         if self.children is None:
             self.children = []
@@ -59,7 +60,7 @@ class AppPageBuilder(BaseModel):
         if len(paths) == len(self_paths):
             raise ValueError(f"path 注册错误 {path} {self.path}")
         if len(paths) - len(self_paths) == 1:
-            app_page = AppPageBuilder(label=label, path=path, url=path)
+            app_page = AppPageBuilder(label=label, path=path, url=path, visible=visible)
             self.children.append(app_page)
             return app_page
         elif len(paths) - len(self_paths) > 1:
