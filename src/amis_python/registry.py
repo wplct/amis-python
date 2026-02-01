@@ -61,6 +61,11 @@ def get_app(name: str) -> AppBuilder:
     """
     根据名称获取已注册的 amis 应用实例
     """
+    if name not in amis_app_map:
+        raise RuntimeError(
+            f"App '{name}' is not registered. "
+            "Call `register_app(app,name)` first."
+        )
     return amis_app_map[name]
 
 def get_page(request,path: str) -> Union[Page,Callable]:
