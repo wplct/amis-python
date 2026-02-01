@@ -1,6 +1,9 @@
 import threading
 from typing import Optional, Union, Callable, Dict
 
+from django.contrib.auth import logout
+
+from amis_python import AppBuilder
 from . import Page
 from .builder.app import AppBuilder, AppPageGroupBuilder, AppPageBuilder
 
@@ -57,15 +60,12 @@ def get_default_app() -> AppBuilder:
         )
     return _default_amis_app
 
-def get_app(name: str) -> AppBuilder:
+def get_app(name: str) -> Optional[AppBuilder]:
     """
     根据名称获取已注册的 amis 应用实例
     """
     if name not in amis_app_map:
-        raise RuntimeError(
-            f"App '{name}' is not registered. "
-            "Call `register_app(app,name)` first."
-        )
+        return None
     return amis_app_map[name]
 
 def get_page(request,path: str) -> Union[Page,Callable]:
@@ -74,5 +74,9 @@ def get_page(request,path: str) -> Union[Page,Callable]:
     """
     if request.session.get("app_config"):
         app = get_app(request.session.get("app_config"))
+        if app is None:
+            print("app_config not found")
+            logout(request)
+            raise RuntimeError("app_config not found")
         return app.get_page(path)
     return get_default_app().get_page(path)
