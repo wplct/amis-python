@@ -115,7 +115,7 @@ class GetAmisAppConfig(APIView):
             return AmisResponse(code=500, msg="Default amis app not registered", data={})
         # 尝试从session中获取应用配置
         if request.session.get("app_config"):
-            return AmisResponse(data=get_app(request.session.get("app_config")))
+            return AmisResponse(data=get_app(request.session.get("app_config")).model_dump())
         return AmisResponse(data=get_default_app().model_dump())
 
 
