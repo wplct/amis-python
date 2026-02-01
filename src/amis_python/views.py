@@ -115,7 +115,12 @@ class GetAmisAppConfig(APIView):
             return AmisResponse(code=500, msg="Default amis app not registered", data={})
         # 尝试从session中获取应用配置
         if request.session.get("app_config"):
-            return AmisResponse(data=get_app(request.session.get("app_config")).model_dump())
+            app = get_app(request.session.get("app_config"))
+            if app is None:
+                django_logout(request)
+                # 跳转到首页
+                return HttpResponse(status=302, headers={"Location": "/"})
+            return AmisResponse(data=app.model_dump())
         return AmisResponse(data=get_default_app().model_dump())
 
 
