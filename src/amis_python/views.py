@@ -114,6 +114,8 @@ class GetAmisAppConfig(APIView):
         if get_default_app() is None:
             return AmisResponse(code=500, msg="Default amis app not registered", data={})
         # 尝试从session中获取应用配置
+        print(request.session)
+        print(request.session.get("app_config"))
         if request.session.get("app_config"):
             app = get_app(request.session.get("app_config"))
             if app is None:
