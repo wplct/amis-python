@@ -72,8 +72,6 @@ def get_page(request,path: str) -> Union[Page,Callable]:
     """
     根据路径获取已注册的页面
     """
-    print(request.session)
-    print(request.session.get("app_config"))
     if request.session.get("app_config"):
         app = get_app(request.session.get("app_config"))
         if app is None:
