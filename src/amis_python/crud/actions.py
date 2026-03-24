@@ -77,6 +77,43 @@ def dialog_button(label, *, body, title=None, size="md", visible_on=None, hidden
     )
 
 
+def form_dialog_button(
+    label,
+    *,
+    api,
+    fields,
+    title=None,
+    size="sm",
+    visible_on=None,
+    hidden_on=None,
+    form_kwargs=None,
+    **overrides,
+):
+    return button(
+        label,
+        size=size,
+        visible_on=visible_on,
+        hidden_on=hidden_on,
+        on_click=[
+            {
+                "actionType": "dialog",
+                "dialog": dialog(
+                    title or label,
+                    body=[
+                        {
+                            "type": "form",
+                            "body": ensure_list(fields),
+                            "api": api,
+                            **(form_kwargs or {}),
+                        }
+                    ],
+                ),
+            }
+        ],
+        **overrides,
+    )
+
+
 def create_dialog_button(label="新增", *, form, title="新增数据", size="md", **overrides):
     return button(
         label,
@@ -133,5 +170,17 @@ def delete_button(*, detail_api, crud_id, label="删除", confirm_text="确认�
             },
             reload_action(crud_id),
         ],
+        **overrides,
+    )
+
+
+def download_button(label, *, api, level=None, size=None, confirm_text=None, **overrides):
+    return button(
+        label,
+        level=level,
+        size=size,
+        action_type="download",
+        confirmText=confirm_text,
+        api=api,
         **overrides,
     )

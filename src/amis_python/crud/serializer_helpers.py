@@ -75,6 +75,30 @@ def serializer_form_body(context, *, create=False, readonly=False, field_names=N
 def serializer_filter_body(context, field_names):
     body = []
     for field_name in field_names:
+        if field_name.endswith("__date_range"):
+            source_field_name = field_name[: -len("__date_range")]
+            body.append(
+                {
+                    "type": "input-date-range",
+                    "name": field_name,
+                    "label": context.get_label(context.get_field(source_field_name), source_field_name) + "范围",
+                    "size": "full",
+                    "utc": True,
+                }
+            )
+            continue
+        if field_name.endswith("__date_time_range"):
+            source_field_name = field_name[: -len("__date_time_range")]
+            body.append(
+                {
+                    "type": "input-datetime-range",
+                    "name": field_name,
+                    "label": context.get_label(context.get_field(source_field_name), source_field_name) + "范围",
+                    "size": "full",
+                    "utc": True,
+                }
+            )
+            continue
         rendered = render_field_schema(context, "filter", context.get_field(field_name), field_name)
         if rendered is not None:
             body.append(rendered)

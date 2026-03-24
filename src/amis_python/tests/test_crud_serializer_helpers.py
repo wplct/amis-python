@@ -7,6 +7,7 @@ from amis_python.crud import (
     create_dialog_button,
     delete_button,
     serializer_columns,
+    serializer_filter_body,
     serializer_form_body,
     view_dialog_button,
 )
@@ -46,3 +47,13 @@ class CrudSerializerHelpersTestCase(TestCase):
         self.assertEqual("查看", view_btn["label"])
         self.assertEqual("删除", delete_btn_cfg["label"])
         self.assertEqual("demo_crud", delete_btn_cfg["onEvent"]["click"]["actions"][1]["componentId"])
+
+    def test_serializer_filter_body_supports_date_range_suffix(self):
+        context = build_serializer_context(title="测试", name="demo", view_set=_ViewSet)
+
+        filter_body = serializer_filter_body(context, ["name", "created_at__date_range"])
+
+        self.assertEqual("name", filter_body[0]["name"])
+        self.assertEqual("created_at__date_range", filter_body[1]["name"])
+        self.assertEqual("input-date-range", filter_body[1]["type"])
+        self.assertEqual("创建时间范围", filter_body[1]["label"])
