@@ -249,13 +249,6 @@ amis-python/
 │   └── amis_python/        # 主要的 Python 包
 │       ├── crud/           # 推荐的函数式 CRUD helper
 │       ├── builder/        # AMIS 组件构建器
-│       ├── build_amis/     # 旧 CRUD / builder 风格能力
-│       │   ├── app/        # 应用组件
-│       │   ├── layout/     # 布局组件
-│       │   ├── api.py      # API 构建器
-│       │   ├── base.py     # 基础构建器
-│       │   ├── event.py    # 事件处理
-│       │   └── utils.py    # 工具函数
 │       ├── static/         # 静态文件
 │       ├── views.py        # Django 视图
 │       ├── urls.py         # Django URL 配置
@@ -271,7 +264,6 @@ amis-python/
 
 - 写 CRUD 页面时，优先使用 `src/amis_python/crud/`
 - `builder/` 仍然可用，但不是当前 CRUD 主推荐路线
-- `build_amis/` 目前更多用于历史能力保留，不建议作为新 CRUD 页面首选入口
 
 ## 贡献
 
