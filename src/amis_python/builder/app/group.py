@@ -49,7 +49,6 @@ class AppPageGroupBuilder(BaseModel):
         for child in new_clildren:
             if path.startswith(child.path):
                 return child.register_page(label,path,visible)
-
         raise ValueError(f"未找到页面：{path}")
 
     def get_page(self, path: str) -> Optional[Page]:
