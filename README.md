@@ -7,6 +7,7 @@ amis-python 是一个为 Django 提供优雅解决方案的库，可以使用 AM
 - **用户认证系统**：内置登录、登出和用户信息管理功能
 - **页面注册机制**：支持从 Python 代码或 JSON 文件注册 AMIS 页面
 - **API 包装装饰器**：提供 `amis_wrap`、`amis_paginate`、`amis_filter`、`amis_search` 等装饰器，简化 API 与 AMIS 的集成
+- **函数式 CRUD helper**：提供 `amis_python.crud`，用于显式组织 CRUD 页面、表单、筛选和动作按钮
 - **Django 集成**：与 Django 框架深度集成，支持直接在 Django 项目中使用
 - **Django Ninja 集成**：支持与 Django Ninja 框架集成，提供 API 响应格式化和认证支持
 
@@ -29,6 +30,14 @@ pip install amis-python
 ```
 
 ## 快速开始
+
+### 推荐路线
+
+如果你是在写后台 CRUD 页面，当前推荐优先使用 `amis_python.crud` 的函数式 helper，而不是继续扩展深继承 builder。
+
+推荐文档见：
+
+- [`docs/crud-recommended-patterns.md`](docs/crud-recommended-patterns.md)
 
 ### 1. 配置步骤
 
