@@ -160,6 +160,10 @@ def render_money(scene, crud, field, field_name, context):
 register_field_renderer(MoneyField, render_money)
 ```
 
+完整示例文件见：
+
+- [`docs/examples/crud_page_example.py`](examples/crud_page_example.py)
+
 ## 当前定位
 
 - `crud/` 是 CRUD 页面推荐入口

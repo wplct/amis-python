@@ -38,6 +38,7 @@ pip install amis-python
 推荐文档见：
 
 - [`docs/crud-recommended-patterns.md`](docs/crud-recommended-patterns.md)
+- [`docs/examples/crud_page_example.py`](docs/examples/crud_page_example.py)
 
 ### 1. 配置步骤
 
@@ -246,7 +247,9 @@ uv run python manage.py runserver
 amis-python/
 ├── src/                    # 主源码目录
 │   └── amis_python/        # 主要的 Python 包
+│       ├── crud/           # 推荐的函数式 CRUD helper
 │       ├── builder/        # AMIS 组件构建器
+│       ├── build_amis/     # 旧 CRUD / builder 风格能力
 │       │   ├── app/        # 应用组件
 │       │   ├── layout/     # 布局组件
 │       │   ├── api.py      # API 构建器
@@ -263,6 +266,12 @@ amis-python/
 ├── test_django/            # Django 测试项目
 └── README.md               # 项目文档
 ```
+
+说明：
+
+- 写 CRUD 页面时，优先使用 `src/amis_python/crud/`
+- `builder/` 仍然可用，但不是当前 CRUD 主推荐路线
+- `build_amis/` 目前更多用于历史能力保留，不建议作为新 CRUD 页面首选入口
 
 ## 贡献
 
