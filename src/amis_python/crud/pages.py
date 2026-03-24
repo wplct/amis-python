@@ -49,3 +49,13 @@ def build_crud_page(
         page["id"] = page_id
     page.update({k: v for k, v in overrides.items() if v is not None})
     return page
+
+
+def build_action_column(actions, *, title="操作", column_type="button-group", **overrides):
+    data = {
+        "type": column_type,
+        "title": title,
+        "buttons": ensure_list(actions),
+    }
+    data.update({k: v for k, v in overrides.items() if v is not None})
+    return data

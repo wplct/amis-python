@@ -75,3 +75,63 @@ def dialog_button(label, *, body, title=None, size="md", visible_on=None, hidden
         dialog=dialog(title or label, body=body, size=size),
         **overrides,
     )
+
+
+def create_dialog_button(label="新增", *, form, title="新增数据", size="md", **overrides):
+    return button(
+        label,
+        level="primary",
+        behavior="Insert",
+        className="m-r-xs",
+        disabledOnAction=False,
+        disabled=False,
+        hidden=False,
+        on_click=[
+            {
+                "actionType": "dialog",
+                "dialog": dialog(title, body=form, size=size),
+            }
+        ],
+        **overrides,
+    )
+
+
+def view_dialog_button(label="查看", *, form, title="查看数据", size="md", **overrides):
+    return button(
+        label,
+        size="sm",
+        behavior="View",
+        on_click=[
+            {
+                "actionType": "dialog",
+                "dialog": {
+                    **dialog(title, body=form, size=size),
+                    "showCloseButton": True,
+                    "closeOnOutside": False,
+                    "closeOnEsc": False,
+                    "showErrorMsg": True,
+                    "showLoading": True,
+                    "draggable": False,
+                },
+            }
+        ],
+        **overrides,
+    )
+
+
+def delete_button(*, detail_api, crud_id, label="删除", confirm_text="确认要删除数据", **overrides):
+    return button(
+        label,
+        size="sm",
+        behavior="Delete",
+        confirmText=confirm_text,
+        on_click=[
+            {
+                "actionType": "ajax",
+                "api": f"delete:{detail_api}",
+                "data": {"&": "$$"},
+            },
+            reload_action(crud_id),
+        ],
+        **overrides,
+    )
