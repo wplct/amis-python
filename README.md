@@ -5,6 +5,7 @@ amis-python 是一个为 Django 提供优雅解决方案的库，可以使用 AM
 ## 功能特性
 
 - **用户认证系统**：内置登录、登出和用户信息管理功能
+- **默认无模型上传**：内置文件/图片上传接口基于 Django storage，不要求额外的文件模型
 - **页面注册机制**：支持从 Python 代码或 JSON 文件注册 AMIS 页面
 - **API 包装装饰器**：提供 `amis_wrap`、`amis_paginate`、`amis_filter`、`amis_search` 等装饰器，简化 API 与 AMIS 的集成
 - **函数式 CRUD helper**：提供 `amis_python.crud`，用于显式组织 CRUD 页面、表单、筛选和动作按钮
@@ -24,9 +25,6 @@ amis-python 是一个为 Django 提供优雅解决方案的库，可以使用 AM
 ```bash
 # 使用 uv 安装
 uv add amis-python
-
-# 使用 pip 安装
-pip install amis-python
 ```
 
 ## 快速开始
@@ -123,9 +121,11 @@ register_page("消息管理", "/message/message", page)
 启动 Django 服务器后，访问以下 URL 查看 AMIS 应用：
 
 - 首页：`http://localhost:8000/amis/`
-- 登录页：`http://localhost:8000/amis/login/`
+- 登录配置：`http://localhost:8000/amis/login/config/`
 - 应用配置：`http://localhost:8000/amis/config/`
-- 页面配置：`http://localhost:8000/amis/page/{page_path}/`
+- 页面配置：`http://localhost:8000/amis/page/{page_path}`
+- 文件上传：`http://localhost:8000/amis/upload`
+- 图片上传：`http://localhost:8000/amis/upload_img`
 
 ## 核心组件
 
@@ -135,9 +135,9 @@ amis-python 提供了以下核心组件，用于构建和管理 AMIS 应用：
 
 | 组件名称 | 用途 |
 |----------|------|
-| `BaseBuilder` | 所有组件的基类，提供基本的序列化功能 |
+| `BaseModel` | 所有组件的基类，提供基本的序列化功能 |
 | `Api` | AMIS API 配置对象，用于定义 API 请求 |
-| `PageBuilder` | 页面构建器，用于创建 AMIS 页面布局 |
+| `Page` | 页面构建器，用于创建 AMIS 页面布局 |
 | `AppBuilder` | 应用构建器，用于创建和管理 AMIS 应用 |
 | `AppPageGroupBuilder` | 页面分组构建器，用于组织页面 |
 | `AppPageBuilder` | 应用页面构建器，用于定义应用中的页面 |
@@ -148,7 +148,7 @@ amis-python 提供了以下核心组件，用于构建和管理 AMIS 应用：
 
 ```python
 # 从 amis_python 直接导入（推荐）
-from amis_python import BaseBuilder, Api, Page, AppBuilder, register_page
+from amis_python import Api, Page, AppBuilder, register_page
 
 # 从具体模块导入
 from amis_python.builder.layout import Page
@@ -213,9 +213,11 @@ page = Page(
 
 3. **API 装饰器顺序**：使用 API 包装装饰器时，建议按照 `@amis_wrap()`、`@amis_paginate()`、`@amis_filter()`、`@amis_search()` 的顺序使用。
 
+4. **上传接口**：当前默认上传实现基于 Django 的 `default_storage`，不会自动创建文件元数据模型记录；文件上传返回存储路径，图片上传返回可访问 URL。
+
 ## 依赖说明
 
-- Python 3.8+
+- Python 3.11 至 3.12
 - Django 3.2+
 - Pydantic 2.0+
 - Django Ninja (可选)
@@ -225,13 +227,14 @@ page = Page(
 ### 安装依赖
 
 ```bash
-uv install
+uv sync
 ```
 
 ### 运行测试
 
 ```bash
-uv run python -m unittest tests/test_app.py -v
+cd src
+uv run python manage.py test amis_python.tests.test_views -v 2
 ```
 
 ### 运行测试项目
@@ -246,16 +249,10 @@ uv run python manage.py runserver
 ```
 amis-python/
 ├── src/                    # 主源码目录
-│   └── amis_python/        # 主要的 Python 包
-│       ├── crud/           # 推荐的函数式 CRUD helper
-│       ├── builder/        # AMIS 组件构建器
-│       ├── static/         # 静态文件
-│       ├── views.py        # Django 视图
-│       ├── urls.py         # Django URL 配置
-│       ├── registry.py     # 应用和页面注册
-│       ├── ninja_api.py    # Django Ninja 集成
-│       └── middleware.py   # 中间件
-├── tests/                  # 单元测试目录
+│   ├── amis_python/        # 主要的 Python 包
+│   ├── manage.py           # Django 测试入口
+│   ├── test_settings.py    # 测试 settings
+│   └── test_urls.py        # 测试 URL 挂载
 ├── test_django/            # Django 测试项目
 └── README.md               # 项目文档
 ```
@@ -264,6 +261,7 @@ amis-python/
 
 - 写 CRUD 页面时，优先使用 `src/amis_python/crud/`
 - `builder/` 仍然可用，但不是当前 CRUD 主推荐路线
+- 涉及 Django API 链路的验证，优先使用 `src/manage.py test`
 
 ## 贡献
 
